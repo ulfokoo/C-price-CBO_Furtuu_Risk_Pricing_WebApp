@@ -58,7 +58,7 @@
                   <input class="form-control form-control-sm" name="label" value="{{ opt.label }}" style="width:180px">
                   <input class="form-control form-control-sm" type="number" name="score" value="{{ opt.score|int }}" style="width:70px">
                   <button class="btn btn-sm btn-outline-primary">✓</button>
-                  <button type="submit" formaction="{{ url_for('admin.delete_scoring_option', opt_id=opt.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this attribute?');">✕</button>
+                  <button type="submit" formaction="{{ url_for('admin.delete_scoring_option', opt_id=opt.id) }}" formnovalidate class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this attribute?');">✕</button>
                 </form>
               {% endfor %}
               </div>
@@ -67,7 +67,7 @@
                 <input class="form-control form-control-sm" type="number" name="score" placeholder="Score" style="width:80px" required>
                 <button class="btn btn-sm btn-success">Add Attribute</button>
                 <span class="flex-grow-1"></span>
-                <button type="submit" formaction="{{ url_for('admin.delete_sub_parameter', sp_id=sp.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this whole sub-parameter?');">Delete Sub-Parameter</button>
+                <button type="submit" formaction="{{ url_for('admin.delete_sub_parameter', sp_id=sp.id) }}" formnovalidate class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this whole sub-parameter?');">Delete Sub-Parameter</button>
               </form>
             </div>
           </td>
