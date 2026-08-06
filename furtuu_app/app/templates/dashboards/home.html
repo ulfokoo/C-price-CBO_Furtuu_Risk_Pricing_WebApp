@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<h3 class="mb-3">Products / Value Chains</h3>
+<p class="text-muted">Each product below is an independent value-chain pricing model (its own scorecard, cost of fund, PD table and pricing waterfall). Editing one product never changes another.</p>
+
+<div class="row g-3">
+  {% for p in products %}
+  <div class="col-md-4">
+    <div class="card product-card shadow-sm h-100">
+      <div class="card-header cbo d-flex justify-content-between align-items-center">
+        <strong>{{ p.name }}</strong>
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('admin.edit_product', product_id=p.id) }}" class="text-white"><i class="bi bi-gear"></i></a>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <p class="text-muted small">{{ p.description or "No description yet." }}</p>
+        <div class="list-group list-group-flush">
+          <a href="{{ url_for('dashboards.scorecard', product_id=p.id) }}" class="list-group-item list-group-item-action"><i class="bi bi-clipboard-check me-1"></i> Scorecard Dashboard</a>
+          <a href="{{ url_for('dashboards.pricing', product_id=p.id) }}" class="list-group-item list-group-item-action"><i class="bi bi-cash-coin me-1"></i> Risk-Adjusted Pricing Dashboard</a>
+          <a href="{{ url_for('dashboards.cost_of_fund', product_id=p.id) }}" class="list-group-item list-group-item-action"><i class="bi bi-piggy-bank me-1"></i> Cost of Fund Dashboard</a>
+          <a href="{{ url_for('dashboards.pd_transformation', product_id=p.id) }}" class="list-group-item list-group-item-action"><i class="bi bi-graph-up-arrow me-1"></i> PD Transformation Dashboard</a>
+          <a href="{{ url_for('dashboards.reference', product_id=p.id) }}" class="list-group-item list-group-item-action"><i class="bi bi-table me-1"></i> Reference Tables (Vlookup)</a>
+          <a href="{{ url_for('dashboards.ngo_support', product_id=p.id) }}" class="list-group-item list-group-item-action"><i class="bi bi-heart-fill me-1"></i> NGO Support Dashboard</a>
+        </div>
+      </div>
+      <div class="card-footer bg-white">
+        <a href="{{ url_for('input.input_dashboard', product_id=p.id) }}" class="btn btn-success btn-sm w-100">
+          <i class="bi bi-pencil-square"></i> Open Input Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  {% if current_user.is_admin %}
+  <div class="col-md-4">
+    <a href="{{ url_for('admin.new_product') }}" class="text-decoration-none">
+      <div class="card h-100 border-dashed d-flex align-items-center justify-content-center text-center" style="border:2px dashed #ccc; min-height:220px;">
+        <div>
+          <i class="bi bi-plus-circle fs-1 text-success"></i>
+          <p class="mt-2 mb-0 fw-bold">Add New Product / Value Chain</p>
+          <p class="text-muted small">e.g. Horticulture, Dairy, Poultry...</p>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

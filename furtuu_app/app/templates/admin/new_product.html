@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Add New Product{% endblock %}
+{% block content %}
+<h3><i class="bi bi-plus-circle"></i> Add New Product / Value Chain</h3>
+<p class="text-muted">e.g. Horticulture, Dairy, Poultry, Livestock Fattening. It will appear as a new option in the Input Dashboard dropdown, with its own independent scorecard, cost of fund, PD table and pricing — completely isolated from other products.</p>
+
+<div class="card" style="max-width:650px;">
+  <div class="card-body">
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label">Product Name</label>
+        <input class="form-control" name="name" required placeholder="e.g. Horticulture Price Loan">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" name="description" rows="2"></textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Starting Structure</label>
+        <select class="form-select" name="clone_from_id">
+          <option value="">Blank starter template</option>
+          {% for t in templates %}
+            <option value="{{ t.id }}">Clone everything from "{{ t.name }}" (recommended — then edit values)</option>
+          {% endfor %}
+        </select>
+        <div class="form-text">Cloning copies all categories, weights, scoring options, cost-of-fund sources, RWA options, repayment schedules, operational costs and PD grades so you can just tweak numbers instead of starting from zero.</div>
+      </div>
+      <button class="btn btn-success">Create Product</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

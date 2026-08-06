@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Manage Users{% endblock %}
+{% block content %}
+<h3><i class="bi bi-people"></i> Manage Users</h3>
+<div class="row">
+  <div class="col-md-5">
+    <div class="card mb-3">
+      <div class="card-header cbo">Add User</div>
+      <div class="card-body">
+        <form method="POST">
+          <div class="mb-2">
+            <label class="form-label">Username</label>
+            <input class="form-control" name="username" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Password</label>
+            <input class="form-control" type="password" name="password" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Role</label>
+            <select class="form-select" name="role">
+              <option value="user">User (Input Dashboard only)</option>
+              <option value="admin">Admin (full edit rights)</option>
+            </select>
+          </div>
+          <button class="btn btn-success">Create User</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-7">
+    <table class="table table-striped bg-white">
+      <thead><tr><th>Username</th><th>Role</th><th>Created</th><th></th></tr></thead>
+      <tbody>
+      {% for u in users %}
+        <tr>
+          <td>{{ u.username }}</td>
+          <td><span class="badge bg-secondary">{{ u.role }}</span></td>
+          <td>{{ u.created_at.strftime('%Y-%m-%d') if u.created_at }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('auth.delete_user', user_id=u.id) }}" onsubmit="return confirm('Delete this user?');">
+              <button class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

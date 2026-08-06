@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}PD Grades — {{ product.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3><i class="bi bi-graph-up-arrow"></i> PD Grades — {{ product.name }}</h3>
+  <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">Back</a>
+</div>
+<p class="text-muted">Adjusted PD = Upper Bound PD × (Upper Bound PD + Stress) / Upper Bound PD. Grade 8 (default) is always fixed at 100% PD.</p>
+
+{% for g in product.pd_grades|sort(attribute='grade_number') %}
+<div class="card mb-2">
+  <div class="card-body py-2">
+    <form method="POST" action="{{ url_for('admin.edit_pd_grade', grade_id=g.id) }}" class="row g-2 align-items-center">
+      <div class="col-md-1"><input class="form-control form-control-sm" name="grade_label" value="{{ g.grade_label }}"></div>
+      <div class="col-md-2"><input class="form-control form-control-sm" name="internal_grade_name" value="{{ g.internal_grade_name or '' }}" placeholder="Internal grade name"></div>
+      <div class="col-md-1"><input class="form-control form-control-sm" name="sp_band" value="{{ g.sp_band or '' }}" placeholder="S&P Band"></div>
+      <div class="col-md-1"><input class="form-control form-control-sm" name="score_range_label" value="{{ g.score_range_label or '' }}" placeholder="Score range"></div>
+      <div class="col-md-1"><input class="form-control form-control-sm" type="number" step="0.01" name="min_score" value="{{ g.min_score }}" title="Min score"></div>
+      <div class="col-md-1"><input class="form-control form-control-sm" type="number" step="0.001" name="upper_bound_pd" value="{{ "%.3f"|format(g.upper_bound_pd*100) }}" title="Upper Bound PD %"></div>
+      <div class="col-md-1"><input class="form-control form-control-sm" type="number" step="0.001" name="stress_agri_digital" value="{{ "%.3f"|format(g.stress_agri_digital*100) }}" title="Stress %"></div>
+      <div class="col-md-1 form-check">
+        <input type="checkbox" class="form-check-input" name="is_default_grade" {{ 'checked' if g.is_default_grade }}>
+        <label class="form-check-label small">Default grade</label>
+      </div>
+      <div class="col-md-2"><button class="btn btn-sm btn-outline-primary w-100">Save</button></div>
+    </form>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

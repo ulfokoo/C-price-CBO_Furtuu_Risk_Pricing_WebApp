@@ -1,0 +1,86 @@
+
+{% extends "base.html" %}
+{% block title %}Scorecard Builder — {{ product.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3><i class="bi bi-clipboard-check"></i> Scorecard Builder — {{ product.name }}</h3>
+  <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">Back</a>
+</div>
+<p class="text-muted">Sum of all sub-parameter weights should equal 100%. Currently: <strong>{{ "%.1f%%"|format(product.total_category_weight()*100) }}</strong></p>
+
+<div class="card mb-3">
+  <div class="card-header cbo">Add Category</div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('admin.add_category', product_id=product.id) }}" class="row g-2">
+      <div class="col-md-8"><input class="form-control" name="name" placeholder="e.g. Rainfall & Disease Risk (15%)" required></div>
+      <div class="col-md-4"><button class="btn btn-success w-100">Add Category</button></div>
+    </form>
+  </div>
+</div>
+
+{% for cat in product.categories %}
+<div class="card mb-3">
+  <div class="card-header cbo d-flex justify-content-between align-items-center">
+    <form method="POST" action="{{ url_for('admin.edit_category', cat_id=cat.id) }}" class="d-flex gap-2 flex-grow-1 me-2">
+      <input class="form-control form-control-sm" name="name" value="{{ cat.name }}">
+      <button class="btn btn-sm btn-light">Save</button>
+    </form>
+    <form method="POST" action="{{ url_for('admin.delete_category', cat_id=cat.id) }}" onsubmit="return confirm('Delete this category and all its sub-parameters?');">
+      <button class="btn btn-sm btn-outline-light">Delete Category</button>
+    </form>
+  </div>
+  <div class="card-body">
+    <table class="table table-sm align-middle">
+      <thead><tr><th>Sub-Parameter</th><th style="width:110px">Weight %</th><th>Move to Category</th><th></th></tr></thead>
+      <tbody>
+      {% for sp in cat.sub_parameters %}
+        <tr>
+          <td colspan="4" class="p-0">
+            <form method="POST" action="{{ url_for('admin.edit_sub_parameter', sp_id=sp.id) }}" class="d-flex gap-2 align-items-center p-2">
+              <input class="form-control form-control-sm" name="name" value="{{ sp.name }}" style="max-width:260px">
+              <input class="form-control form-control-sm" type="number" step="0.01" name="weight" value="{{ (sp.weight*100)|round(2) }}" style="max-width:100px">
+              <select class="form-select form-select-sm" name="category_id" style="max-width:220px">
+                {% for c in product.categories %}
+                  <option value="{{ c.id }}" {{ 'selected' if c.id==cat.id }}>{{ c.name }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn btn-sm btn-outline-primary">Save</button>
+            </form>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="4" class="bg-light">
+            <div class="ps-3 py-2">
+              <strong class="small text-muted">Scoring Attributes:</strong>
+              <div class="d-flex flex-wrap gap-2 my-2">
+              {% for opt in sp.options %}
+                <form method="POST" action="{{ url_for('admin.edit_scoring_option', opt_id=opt.id) }}" class="d-flex gap-1 align-items-center border rounded p-1 bg-white">
+                  <input class="form-control form-control-sm" name="label" value="{{ opt.label }}" style="width:180px">
+                  <input class="form-control form-control-sm" type="number" name="score" value="{{ opt.score|int }}" style="width:70px">
+                  <button class="btn btn-sm btn-outline-primary">✓</button>
+                  <button type="submit" formaction="{{ url_for('admin.delete_scoring_option', opt_id=opt.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this attribute?');">✕</button>
+                </form>
+              {% endfor %}
+              </div>
+              <form method="POST" action="{{ url_for('admin.add_scoring_option', sp_id=sp.id) }}" class="d-flex gap-1">
+                <input class="form-control form-control-sm" name="label" placeholder="New attribute label" style="width:200px" required>
+                <input class="form-control form-control-sm" type="number" name="score" placeholder="Score" style="width:80px" required>
+                <button class="btn btn-sm btn-success">Add Attribute</button>
+                <span class="flex-grow-1"></span>
+                <button type="submit" formaction="{{ url_for('admin.delete_sub_parameter', sp_id=sp.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this whole sub-parameter?');">Delete Sub-Parameter</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <form method="POST" action="{{ url_for('admin.add_sub_parameter', cat_id=cat.id) }}" class="row g-2 mt-2">
+      <div class="col-md-5"><input class="form-control form-control-sm" name="name" placeholder="New sub-parameter name" required></div>
+      <div class="col-md-3"><input class="form-control form-control-sm" type="number" step="0.01" name="weight" placeholder="Weight %" required></div>
+      <div class="col-md-4"><button class="btn btn-sm btn-success">Add Sub-Parameter</button></div>
+    </form>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

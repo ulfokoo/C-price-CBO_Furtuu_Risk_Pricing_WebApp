@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — PD Transformation{% endblock %}
+{% block content %}
+{% set active = 'pd' %}
+{% include "dashboards/_subnav.html" %}
+
+<p class="text-muted">Country/S&amp;P-anchored PD bands, uplifted for agriculture and digital-lending volatility. Adjusted PD = Upper Bound PD × Multiplier, where Multiplier = (Upper Bound PD + Stress) / Upper Bound PD.</p>
+
+<div class="card">
+  <div class="card-header cbo">PD Transformation Table</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped mb-0">
+      <thead><tr><th>Grade</th><th>Internal Grade</th><th>S&amp;P Band</th><th>Score Range</th><th>Upper Bound PD</th><th>Agri + Digital Stress</th><th>Multiplier</th><th>Adjusted PD</th></tr></thead>
+      <tbody>
+      {% for row in result.rows %}
+        {% set g = row.grade %}
+        <tr>
+          <td><span class="badge badge-{{ g.grade_label|lower|replace(' ','') }}">{{ g.grade_label }}</span></td>
+          <td>{{ g.internal_grade_name }}</td>
+          <td>{{ g.sp_band }}</td>
+          <td>{{ g.score_range_label }}</td>
+          <td>{{ "%.3f%%"|format(g.upper_bound_pd*100) }}</td>
+          <td>{{ "%.3f%%"|format(g.stress_agri_digital*100) }}</td>
+          <td>{{ "%.2fx"|format(row.multiplier) if row.multiplier is not none else "—" }}</td>
+          <td class="fw-bold">{{ "%.3f%%"|format(row.adjusted_pd*100) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="alert alert-secondary mt-3">
+  <strong>Rationale:</strong> Agricultural borrowers exhibit higher default volatility due to exogenous risks (climate, yield variability, market price fluctuations), which is why the PD bands here are wider than a standard retail portfolio. A combined Agri + Digital lending premium is added to the upper-bound PD of each grade before pricing.
+</div>
+{% endblock %}

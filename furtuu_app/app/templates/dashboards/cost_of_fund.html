@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — Cost of Fund{% endblock %}
+{% block content %}
+{% set active = 'cof' %}
+{% include "dashboards/_subnav.html" %}
+
+<div class="kpi-box mb-3" style="max-width:340px;">
+  <div class="text-muted small">Weighted Average Cost of Fund</div>
+  <div class="fs-3 fw-bold">{{ "%.3f%%"|format(result.weighted_avg_cost_of_fund*100) }}</div>
+</div>
+
+<div class="card">
+  <div class="card-header cbo">Funding Sources</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped mb-0">
+      <thead><tr><th>Funding Source</th><th>Balance</th><th>Annual Rate</th><th>Annual Interest Expense</th></tr></thead>
+      <tbody>
+      {% for row in result.rows %}
+        <tr>
+          <td>{{ row.source.name }}</td>
+          <td>{{ "{:,.2f}".format(row.source.balance) }}</td>
+          <td>{{ "%.3f%%"|format(row.source.annual_rate*100) }}</td>
+          <td>{{ "{:,.2f}".format(row.expense) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="fw-bold table-light">
+          <td>Total</td><td>{{ "{:,.2f}".format(result.total_balance) }}</td><td></td><td>{{ "{:,.2f}".format(result.total_expense) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Login — CBO Risk-Based Pricing{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-header cbo text-center">
+        <i class="bi bi-bank2 fs-2"></i>
+        <h5 class="mt-2 mb-0">Cooperative Bank of Oromia</h5>
+        <small>Risk-Based Pricing Platform</small>
+      </div>
+      <div class="card-body">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-control" name="username" required autofocus>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-control" name="password" required>
+          </div>
+          <button type="submit" class="btn btn-success w-100">Login</button>
+        </form>
+        <hr>
+        <p class="small text-muted mb-0">Default admin: <code>admin</code> / <code>admin123</code> — please change this after first login.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

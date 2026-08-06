@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — Scorecard{% endblock %}
+{% block content %}
+{% set active = 'scorecard' %}
+{% include "dashboards/_subnav.html" %}
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3"><div class="kpi-box"><div class="text-muted small">Total Weighted Score</div><div class="fs-3 fw-bold">{{ "%.2f"|format(result.total_weighted_score) }}</div></div></div>
+  <div class="col-md-3"><div class="kpi-box"><div class="text-muted small">Customer Grade</div><div class="fs-3 fw-bold"><span class="badge badge-{{ result.grade|lower|replace(' ','') }}">{{ result.grade }}</span></div></div></div>
+  <div class="col-md-3"><div class="kpi-box"><div class="text-muted small">Probability of Default</div><div class="fs-3 fw-bold">{{ "%.2f%%"|format((result.pd_value or 0)*100) }}</div></div></div>
+  <div class="col-md-3"><div class="kpi-box"><div class="text-muted small">Sum of Category Weights</div><div class="fs-3 fw-bold">{{ "%.1f%%"|format(result.total_weight*100) }}</div></div></div>
+</div>
+
+{% for cat in result.categories %}
+<div class="card mb-3">
+  <div class="card-header cbo d-flex justify-content-between">
+    <span>{{ cat.category.name }}</span>
+    <span>Weighted total: <strong>{{ "%.2f"|format(cat.category_weighted_total) }}</strong></span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped mb-0">
+      <thead><tr><th>Sub-Parameter</th><th>Weight</th><th>Assessment Result</th><th>Score</th><th>Weighted Score</th></tr></thead>
+      <tbody>
+      {% for row in cat.sub_rows %}
+        <tr>
+          <td>{{ row.sub_parameter.name }}</td>
+          <td>{{ "%.1f%%"|format(row.sub_parameter.weight*100) }}</td>
+          <td>{{ row.sub_parameter.selected_option.label if row.sub_parameter.selected_option else "— not set —" }}</td>
+          <td>{{ row.score }}</td>
+          <td>{{ "%.2f"|format(row.weighted_score) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

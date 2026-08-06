@@ -1,0 +1,16 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">{{ product.name }} <small class="text-muted fs-6">{{ active|default('') }}</small></h3>
+  <a href="{{ url_for('dashboards.home') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> All Products</a>
+</div>
+<ul class="nav nav-pills mb-3">
+  <li class="nav-item"><a class="nav-link {{ 'active' if active=='scorecard' }}" href="{{ url_for('dashboards.scorecard', product_id=product.id) }}">Scorecard</a></li>
+  <li class="nav-item"><a class="nav-link {{ 'active' if active=='pricing' }}" href="{{ url_for('dashboards.pricing', product_id=product.id) }}">Pricing</a></li>
+  <li class="nav-item"><a class="nav-link {{ 'active' if active=='cof' }}" href="{{ url_for('dashboards.cost_of_fund', product_id=product.id) }}">Cost of Fund</a></li>
+  <li class="nav-item"><a class="nav-link {{ 'active' if active=='pd' }}" href="{{ url_for('dashboards.pd_transformation', product_id=product.id) }}">PD Transformation</a></li>
+  <li class="nav-item"><a class="nav-link {{ 'active' if active=='ref' }}" href="{{ url_for('dashboards.reference', product_id=product.id) }}">Reference Tables</a></li>
+  <li class="nav-item"><a class="nav-link {{ 'active' if active=='ngo' }}" href="{{ url_for('dashboards.ngo_support', product_id=product.id) }}">NGO Support</a></li>
+  <li class="nav-item"><a class="nav-link" href="{{ url_for('input.input_dashboard', product_id=product.id) }}"><i class="bi bi-pencil-square"></i> Input Dashboard</a></li>
+  {% if current_user.is_admin %}
+  <li class="nav-item"><a class="nav-link text-danger" href="{{ url_for('admin.edit_product', product_id=product.id) }}"><i class="bi bi-tools"></i> Admin Edit</a></li>
+  {% endif %}
+</ul>

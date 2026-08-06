@@ -1,0 +1,20 @@
+:root {
+  --cbo-green: #14532d;
+  --cbo-gold: #c99a2e;
+}
+body { background: #f4f6f5; }
+.cbo-navbar { background: linear-gradient(90deg, var(--cbo-green), #1f7a43); }
+.card-header.cbo { background: var(--cbo-green); color: #fff; }
+.badge-grade1 { background: #146c2e; }
+.badge-grade2 { background: #2e8b47; }
+.badge-grade3 { background: #74a92f; }
+.badge-grade4 { background: #c9a227; }
+.badge-grade5 { background: #d98a1f; }
+.badge-grade6 { background: #d9631f; }
+.badge-grade7 { background: #c93b1f; }
+.badge-grade8 { background: #8c1c1c; }
+.product-card { transition: transform .15s ease; }
+.product-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.08); }
+table.table-sm td, table.table-sm th { vertical-align: middle; }
+.kpi-box { border-left: 4px solid var(--cbo-green); background: #fff; border-radius: .5rem; padding: 1rem; }
+.section-title { border-bottom: 2px solid var(--cbo-gold); padding-bottom: .25rem; margin-top: 1.5rem; }

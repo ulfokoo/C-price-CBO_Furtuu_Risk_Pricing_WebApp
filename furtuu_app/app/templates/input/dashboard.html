@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Input Dashboard{% endblock %}
+{% block content %}
+<h3 class="mb-3"><i class="bi bi-pencil-square"></i> Input Dashboard</h3>
+
+<form method="GET" class="row g-2 align-items-end mb-4">
+  <div class="col-md-4">
+    <label class="form-label">Select Product / Value Chain</label>
+    <select class="form-select" name="product_id" onchange="this.form.submit()">
+      {% for p in products %}
+        <option value="{{ p.id }}" {{ 'selected' if product and product.id==p.id }}>{{ p.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</form>
+
+{% if not product %}
+  <div class="alert alert-warning">No products exist yet. Ask an admin to create one.</div>
+{% else %}
+
+<div class="card mb-4">
+  <div class="card-header cbo">Credit Scoring — {{ product.name }}</div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('input.submit_assessment', product_id=product.id) }}">
+      {% for cat in result.categories %}
+      <h6 class="section-title">{{ cat.category.name }} <span class="text-muted">(weighted total: {{ "%.2f"|format(cat.category_weighted_total) }})</span></h6>
+      <div class="table-responsive mb-2">
+        <table class="table table-sm">
+          <thead><tr><th style="width:30%">Sub-Parameter</th><th style="width:10%">Weight</th><th style="width:40%">Assessment Result</th><th style="width:10%">Score</th><th style="width:10%">Weighted</th></tr></thead>
+          <tbody>
+          {% for row in cat.sub_rows %}
+            {% set sp = row.sub_parameter %}
+            <tr>
+              <td>{{ sp.name }}</td>
+              <td>{{ "%.1f%%"|format(sp.weight*100) }}</td>
+              <td>
+                <select class="form-select form-select-sm" name="sp_{{ sp.id }}">
+                  <option value="">— not set —</option>
+                  {% for opt in sp.options %}
+                    <option value="{{ opt.id }}" {{ 'selected' if sp.selected_option_id==opt.id }}>{{ opt.label }} ({{ opt.score|int }})</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td>{{ row.score }}</td>
+              <td>{{ "%.2f"|format(row.weighted_score) }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-success"><i class="bi bi-calculator"></i> Save &amp; Recalculate</button>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="kpi-box"><div class="text-muted small">Total Weighted Score</div><div class="fs-3 fw-bold">{{ "%.2f"|format(result.total_weighted_score) }}</div></div></div>
+  <div class="col-md-3"><div class="kpi-box"><div class="text-muted small">Customer Grade</div><div class="fs-3 fw-bold"><span class="badge badge-{{ result.grade|lower|replace(' ','') }}">{{ result.grade }}</span></div></div></div>
+  <div class="col-md-3"><div class="kpi-box"><div class="text-muted small">Probability of Default</div><div class="fs-3 fw-bold">{{ "%.2f%%"|format((result.pd_value or 0)*100) }}</div></div></div>
+  <div class="col-md-3"><div class="kpi-box"><div class="text-muted small">Total Category Weight</div><div class="fs-3 fw-bold">{{ "%.1f%%"|format(result.total_weight*100) }}</div></div></div>
+</div>
+
+{% if product.pricing_input %}
+<div class="card mb-4">
+  <div class="card-header cbo">Pricing Selections</div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('input.submit_pricing_selection', product_id=product.id) }}" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Loan Amount (ETB)</label>
+        <input type="number" step="0.01" class="form-control" name="loan_amount" value="{{ product.pricing_input.loan_amount }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Risk Weight Category</label>
+        <select class="form-select" name="rwa_option_id">
+          {% for r in product.rwa_options %}
+            <option value="{{ r.id }}" {{ 'selected' if product.pricing_input.rwa_option_id==r.id }}>{{ r.label }} ({{ "%.0f%%"|format(r.rwa_value*100) }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Repayment Schedule / Tenure</label>
+        <select class="form-select" name="repayment_schedule_id">
+          {% for r in product.repayment_schedules %}
+            <option value="{{ r.id }}" {{ 'selected' if product.pricing_input.repayment_schedule_id==r.id }}>{{ r.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-success"><i class="bi bi-cash-coin"></i> Save &amp; Reprice</button>
+        <a href="{{ url_for('dashboards.pricing', product_id=product.id) }}" class="btn btn-outline-secondary">View Full Pricing Dashboard</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if pricing_result %}
+{% set m = pricing_result.main %}
+<div class="card">
+  <div class="card-header cbo">Resulting Interest Rate</div>
+  <div class="card-body">
+    <div class="row text-center">
+      <div class="col-md-4"><div class="fs-6 text-muted">Annual Rate</div><div class="fs-2 fw-bold text-success">{{ "%.2f%%"|format(m.interest_rate_annual*100) }}</div></div>
+      <div class="col-md-4"><div class="fs-6 text-muted">Tenor Rate ({{ m.tenure_months|round(0)|int }}m)</div><div class="fs-2 fw-bold text-success">{{ "%.2f%%"|format(m.interest_rate_tenor*100) }}</div></div>
+      <div class="col-md-4"><div class="fs-6 text-muted">Required Rate (after access fee)</div><div class="fs-2 fw-bold text-success">{{ "%.2f%%"|format(m.required_rate*100) }}</div></div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% else %}
+<div class="alert alert-info">No pricing inputs configured for this product yet — ask an admin to set them up.</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

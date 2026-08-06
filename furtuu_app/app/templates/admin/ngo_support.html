@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}NGO Support — {{ product.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3><i class="bi bi-heart-fill"></i> NGO Support — {{ product.name }}</h3>
+  <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">Back</a>
+</div>
+
+<datalist id="ngo-suggestions">
+  <option value="Matching Fund">
+  <option value="Seed Money NGO">
+  <option value="Input Financing (direct to Vendor)">
+  <option value="Technical Support">
+  <option value="Operational Support">
+  <option value="Grant Funding">
+  <option value="Insurance Coverage">
+  <option value="Other">
+</datalist>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <label class="form-label">NGO Support Max Price Impact (%) — what a 100% allocation is worth</label>
+    <form method="POST" action="{{ url_for('admin.pricing_inputs', product_id=product.id) }}" class="row g-2">
+      <div class="col-md-3">
+        <input class="form-control form-control-sm" type="number" step="0.1" name="ngo_max_price_impact_pct"
+               value="{{ "%.1f"|format((product.pricing_input.ngo_max_price_impact_pct or 0.05) * 100) }}">
+      </div>
+      <div class="col-md-2"><button class="btn btn-sm btn-success w-100">Save Cap</button></div>
+    </form>
+    <div class="form-text">This uses the same field as the full Pricing Inputs page, so saving here updates it everywhere.</div>
+  </div>
+</div>
+
+<p class="text-muted">Total allocated across active items should equal 100%. Cap: 100% allocated = {{ "%.1f%%"|format(result.cap*100) }} price reduction.</p>
+
+{% for item in result.rows %}
+<div class="card mb-2">
+  <div class="card-body py-2">
+    <form method="POST" action="{{ url_for('dashboards.edit_ngo_support', item_id=item.id) }}" class="row g-2 align-items-center">
+      <div class="col-md-5"><input class="form-control form-control-sm" name="name" list="ngo-suggestions" value="{{ item.name }}"></div>
+      <div class="col-md-2"><input class="form-control form-control-sm" type="number" step="0.01" name="percent" value="{{ "%.2f"|format(item.percent*100) }}" title="Percent"></div>
+      <div class="col-md-1 form-check">
+        <input type="checkbox" class="form-check-input" name="is_active" {{ 'checked' if item.is_active }}>
+        <label class="form-check-label small">Active</label>
+      </div>
+      <div class="col-md-2"><button class="btn btn-sm btn-outline-primary w-100">Save</button></div>
+      <div class="col-md-2">
+        <button type="submit" formaction="{{ url_for('dashboards.delete_ngo_support', item_id=item.id) }}" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Delete this item?');">Delete</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endfor %}
+
+<div class="card mt-3">
+  <div class="card-header cbo">Add NGO Support Item</div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('dashboards.add_ngo_support', product_id=product.id) }}" class="row g-2">
+      <div class="col-md-6"><input class="form-control" name="name" list="ngo-suggestions" placeholder="e.g. Matching Fund" required></div>
+      <div class="col-md-3"><input class="form-control" type="number" step="0.01" name="percent" placeholder="%" required></div>
+      <div class="col-md-3"><button class="btn btn-success w-100">Add</button></div>
+    </form>
+  </div>
+</div>
+
+<p class="fw-bold mt-3">Total Allocated: {{ "%.2f%%"|format(result.total_pct*100) }} → effective price reduction: {{ "%.2f%%"|format(result.effective_reduction_pct*100) }}</p>
+{% endblock %}

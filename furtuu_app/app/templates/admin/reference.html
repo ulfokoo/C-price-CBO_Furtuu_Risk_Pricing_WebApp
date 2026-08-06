@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Reference Tables — {{ product.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3><i class="bi bi-table"></i> Reference Tables — {{ product.name }}</h3>
+  <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">Back</a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header cbo">RWA Mapping</div>
+  <div class="card-body">
+    <table class="table table-sm">
+      <tbody>
+      {% for r in product.rwa_options %}
+        <tr>
+          <td colspan="2" class="p-0">
+            <form method="POST" action="{{ url_for('admin.edit_rwa_option', rwa_id=r.id) }}" class="d-flex gap-2 align-items-center p-1">
+              <input class="form-control form-control-sm" name="label" value="{{ r.label }}" style="max-width:320px">
+              <input class="form-control form-control-sm" type="number" step="0.01" name="rwa_value" value="{{ "%.2f"|format(r.rwa_value*100) }}" style="max-width:100px">
+              <button class="btn btn-sm btn-outline-primary">Save</button>
+              <button type="submit" formaction="{{ url_for('admin.delete_rwa_option', rwa_id=r.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete?');">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <form method="POST" action="{{ url_for('admin.add_rwa_option', product_id=product.id) }}" class="d-flex gap-2">
+      <input class="form-control form-control-sm" name="label" placeholder="Category label" style="max-width:320px" required>
+      <input class="form-control form-control-sm" type="number" step="0.01" name="rwa_value" placeholder="RWA %" style="max-width:100px" required>
+      <button class="btn btn-sm btn-success">Add RWA Option</button>
+    </form>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header cbo">Repayment Schedule / Tenure Charge</div>
+  <div class="card-body">
+    <table class="table table-sm">
+      <tbody>
+      {% for r in product.repayment_schedules %}
+        <tr>
+          <td colspan="3" class="p-0">
+            <form method="POST" action="{{ url_for('admin.edit_repayment_schedule', rs_id=r.id) }}" class="d-flex gap-2 align-items-center p-1">
+              <input class="form-control form-control-sm" name="label" value="{{ r.label }}" style="max-width:280px">
+              <input class="form-control form-control-sm" type="number" step="0.1" name="tenure_months" value="{{ r.tenure_months }}" style="max-width:100px" title="Tenure months">
+              <input class="form-control form-control-sm" type="number" step="0.001" name="rate" value="{{ "%.3f"|format(r.rate*100) }}" style="max-width:100px" title="Rate %">
+              <button class="btn btn-sm btn-outline-primary">Save</button>
+              <button type="submit" formaction="{{ url_for('admin.delete_repayment_schedule', rs_id=r.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete?');">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <form method="POST" action="{{ url_for('admin.add_repayment_schedule', product_id=product.id) }}" class="d-flex gap-2">
+      <input class="form-control form-control-sm" name="label" placeholder="e.g. 9 months-Grains (Furtuu)" style="max-width:280px" required>
+      <input class="form-control form-control-sm" type="number" step="0.1" name="tenure_months" placeholder="Months" style="max-width:100px" required>
+      <input class="form-control form-control-sm" type="number" step="0.001" name="rate" placeholder="Rate %" style="max-width:100px" required>
+      <button class="btn btn-sm btn-success">Add Schedule</button>
+    </form>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header cbo">Operational Cost Components</div>
+  <div class="card-body">
+    <table class="table table-sm">
+      <tbody>
+      {% for c in product.op_cost_components %}
+        <tr>
+          <td colspan="2" class="p-0">
+            <form method="POST" action="{{ url_for('admin.edit_op_cost_component', oc_id=c.id) }}" class="d-flex gap-2 align-items-center p-1">
+              <input class="form-control form-control-sm" name="name" value="{{ c.name }}" style="max-width:280px">
+              <input class="form-control form-control-sm" type="number" step="0.001" name="value" value="{{ "%.3f"|format(c.value*100) }}" style="max-width:100px">
+              <button class="btn btn-sm btn-outline-primary">Save</button>
+              <button type="submit" formaction="{{ url_for('admin.delete_op_cost_component', oc_id=c.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete?');">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <form method="POST" action="{{ url_for('admin.add_op_cost_component', product_id=product.id) }}" class="d-flex gap-2">
+      <input class="form-control form-control-sm" name="name" placeholder="e.g. Tech" style="max-width:280px" required>
+      <input class="form-control form-control-sm" type="number" step="0.001" name="value" placeholder="Value %" style="max-width:100px" required>
+      <button class="btn btn-sm btn-success">Add Component</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

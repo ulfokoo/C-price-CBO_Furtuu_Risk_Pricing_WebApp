@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — NGO Support{% endblock %}
+{% block content %}
+{% set active = 'ngo' %}
+{% include "dashboards/_subnav.html" %}
+
+<div class="card">
+  <div class="card-header cbo d-flex justify-content-between align-items-center">
+    <span>NGO Support Items <span class="fw-normal">(cap: 100% allocated = {{ "%.1f%%"|format(result.cap*100) }} price reduction)</span></span>
+    {% if current_user.is_admin %}
+    <a class="btn btn-sm btn-outline-light" href="{{ url_for('admin.ngo_support_admin', product_id=product.id) }}">Manage in Admin</a>
+    {% endif %}
+  </div>
+  <table class="table table-sm mb-0">
+    <thead><tr><th>Name</th><th>%</th><th>Active</th></tr></thead>
+    <tbody>
+    {% for item in result.rows %}
+      <tr>
+        <td>{{ item.name }}</td>
+        <td>{{ "%.2f%%"|format(item.percent*100) }}</td>
+        <td>{{ "Yes" if item.is_active else "No" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr class="fw-bold table-light">
+        <td>Total Allocated (should equal 100%)</td>
+        <td colspan="2">{{ "%.2f%%"|format(result.total_pct*100) }} → effective price reduction: {{ "%.2f%%"|format(result.effective_reduction_pct*100) }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% if current_user.is_admin %}
+<p class="text-muted mt-2">To add, edit, delete, or change the cap %, use <a href="{{ url_for('admin.ngo_support_admin', product_id=product.id) }}">Admin → NGO Support</a>.</p>
+{% else %}
+<p class="text-muted mt-2">Only admins can add, edit, or delete NGO support items.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — Reference{% endblock %}
+{% block content %}
+{% set active = 'ref' %}
+{% include "dashboards/_subnav.html" %}
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header cbo">RWA Mapping (per NBE Capital Directive)</div>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Category</th><th>RWA</th></tr></thead>
+        <tbody>
+        {% for r in product.rwa_options %}
+          <tr><td>{{ r.label }}</td><td>{{ "%.0f%%"|format(r.rwa_value*100) }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header cbo">Repayment Schedule / Tenure Charge</div>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Schedule</th><th>Tenure (months)</th><th>Rate</th></tr></thead>
+        <tbody>
+        {% for r in product.repayment_schedules %}
+          <tr><td>{{ r.label }}</td><td>{{ r.tenure_months }}</td><td>{{ "%.3f%%"|format(r.rate*100) }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-header cbo">Operational Cost Components</div>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Component</th><th>Value</th></tr></thead>
+        <tbody>
+        {% for c in product.op_cost_components %}
+          <tr><td>{{ c.name }}</td><td>{{ "%.3f%%"|format(c.value*100) }}</td></tr>
+        {% endfor %}
+        </tbody>
+        <tfoot><tr class="fw-bold table-light"><td>Total Operating Cost</td><td>{{ "%.3f%%"|format(product.op_cost_components|sum(attribute='value')*100) }}</td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

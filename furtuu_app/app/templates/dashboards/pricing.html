@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — Pricing{% endblock %}
+{% block content %}
+{% set active = 'pricing' %}
+{% include "dashboards/_subnav.html" %}
+{% set m = result.main %}
+
+<div class="row g-3 mb-3">
+  <div class="col-md-3"><div class="kpi-box"><div class="text-muted small">Interest Rate (Annual)</div><div class="fs-3 fw-bold">{{ "%.2f%%"|format(m.interest_rate_annual*100) }}</div></div></div>
+  <div class="col-md-3"><div class="kpi-box"><div class="text-muted small">Interest Rate ({{ m.tenure_months|round(0)|int }} months)</div><div class="fs-3 fw-bold">{{ "%.2f%%"|format(m.interest_rate_tenor*100) }}</div></div></div>
+  <div class="col-md-3"><div class="kpi-box"><div class="text-muted small">Required Rate (after access fee)</div><div class="fs-3 fw-bold">{{ "%.2f%%"|format(m.required_rate*100) }}</div></div></div>
+  <div class="col-md-3"><div class="kpi-box"><div class="text-muted small">Customer Grade / PD</div><div class="fs-4 fw-bold"><span class="badge badge-{{ m.grade|lower|replace(' ','') }}">{{ m.grade }}</span> {{ "%.2f%%"|format(m.pd*100) }}</div></div></div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header cbo">Risk-Adjusted Return — Main Scenario (Loan Amount: {{ "{:,.0f}".format(m.loan_amount) }} ETB)</div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead><tr><th></th><th>%</th><th>ETB</th></tr></thead>
+      <tbody>
+        <tr><td>Target Return on RWA ({{ "%.0f%%"|format(m.rwa*100) }} RWA — {{ m.rwa_label }})</td><td>{{ "%.3f%%"|format(m.target_return*100) }}</td><td>{{ "{:,.2f}".format(m.target_return_etb) }}</td></tr>
+        <tr><td>Cost of Fund</td><td>{{ "%.3f%%"|format(m.cost_of_fund*100) }}</td><td>{{ "{:,.2f}".format(m.cost_of_fund_etb) }}</td></tr>
+        <tr><td>Risk Adjustment (Expected Credit Loss = PD×LGD×EAD)</td><td>{{ "%.3f%%"|format(m.expected_credit_loss*100) }}</td><td>{{ "{:,.2f}".format(m.risk_adj_etb) }}</td></tr>
+        <tr><td>Operational Cost</td><td>{{ "%.3f%%"|format(m.op_cost*100) }}</td><td>{{ "{:,.2f}".format(m.op_cost_etb) }}</td></tr>
+        <tr><td>Repayment/Tenure Charge ({{ m.tenure_label }})</td><td>{{ "%.3f%%"|format(m.tenure_rate*100) }}</td><td>{{ "{:,.2f}".format(m.tenure_charge_etb) }}</td></tr>
+        <tr><td>Interest Rate (Annual) before NGO Support</td><td>{{ "%.3f%%"|format(m.interest_rate_annual_before_ngo*100) }}</td><td>{{ "{:,.2f}".format(m.interest_rate_annual_before_ngo * m.loan_amount) }}</td></tr>
+        <tr class="table-info"><td>Less: NGO Support ({{ "%.0f%%"|format(m.ngo_total_pct*100) }} allocated)</td><td>-{{ "%.3f%%"|format(m.ngo_effective_reduction_pct*100) }}</td><td>-{{ "{:,.2f}".format(m.ngo_effective_reduction_pct * m.loan_amount) }}</td></tr>
+        <tr class="table-success fw-bold"><td>Interest Rate (Annual) — NGO-Adjusted</td><td>{{ "%.3f%%"|format(m.interest_rate_annual*100) }}</td><td>{{ "{:,.2f}".format(m.interest_rate_annual_etb) }}</td></tr>
+        <tr class="fw-bold"><td>Interest Rate ({{ m.tenure_months|round(0)|int }} months tenor)</td><td>{{ "%.3f%%"|format(m.interest_rate_tenor*100) }}</td><td>{{ "{:,.2f}".format(m.interest_rate_tenor_etb) }}</td></tr>
+        <tr><td>Less: Expected Access Fee</td><td>{{ "%.3f%%"|format(m.access_fee_pct*100) }}</td><td>-{{ "{:,.2f}".format(m.access_fee_etb) }}</td></tr>
+        <tr class="table-warning fw-bold"><td>Required Interest Rate on the Loan</td><td>{{ "%.3f%%"|format(m.required_rate*100) }}</td><td>{{ "{:,.2f}".format(m.required_rate_etb) }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header cbo">Price Across Bankable Risk Grade</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped mb-0">
+      <thead><tr><th>Grade</th><th>PD</th><th>Target Return</th><th>Cost of Fund</th><th>Tenure Charge</th><th>Op. Cost</th><th>Credit Risk Premium</th><th>Interest Rate (Annual)</th><th>Interest Rate (Tenor)</th></tr></thead>
+      <tbody>
+      {% for r in result.grade_rows %}
+        <tr>
+          <td><span class="badge badge-{{ r.grade_label|lower|replace(' ','') }}">{{ r.grade_label }}</span></td>
+          <td>{{ "%.2f%%"|format(r.pd*100) }}</td>
+          <td>{{ "%.3f%%"|format(r.target_return*100) }}</td>
+          <td>{{ "%.3f%%"|format(r.cost_of_fund*100) }}</td>
+          <td>{{ "%.3f%%"|format(r.tenure_rate*100) }}</td>
+          <td>{{ "%.3f%%"|format(r.op_cost*100) }}</td>
+          <td>{{ "%.3f%%"|format(r.credit_risk_premium*100) }}</td>
+          <td class="fw-bold">{{ "%.3f%%"|format(r.interest_rate_annual*100) }}</td>
+          <td class="fw-bold">{{ "%.3f%%"|format(r.interest_rate_tenor*100) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
