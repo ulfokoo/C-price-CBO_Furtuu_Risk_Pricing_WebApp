@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Login — CBO Risk-Based Pricing{% endblock %}
+{% block title %}Sign Up — CBO Risk-Based Pricing{% endblock %}
 {% block content %}
 <style>
   body { background: #0f1729; }
@@ -42,14 +42,11 @@
     color: #0e7a6b; font-size: .85rem; font-weight: 600; cursor: pointer; user-select: none;
     background: none; border: none;
   }
-  .cbo-row-between { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
-  .cbo-row-between label { color: #cbd5e1; font-size: .85rem; display: flex; align-items: center; gap: 6px; margin: 0; }
-  .cbo-row-between a { color: #22d3c8; font-size: .85rem; text-decoration: none; }
-  .cbo-row-between a:hover { text-decoration: underline; }
   .cbo-login-btn {
     width: 100%; border: none; border-radius: 8px; padding: 13px 0;
     background: linear-gradient(90deg, #4c5fd5, #7c3aed);
     color: #fff; font-weight: 600; font-size: 1rem;
+    margin-top: 6px;
   }
   .cbo-login-btn:hover { opacity: .92; }
   .cbo-signup-line { text-align: center; margin-top: 20px; color: #94a3b8; font-size: .9rem; }
@@ -64,7 +61,7 @@
     <small>Risk-Based Pricing Platform</small>
   </div>
   <div style="color:#fff; font-weight:700; font-size:1.2rem; display:flex; align-items:center; gap:8px">
-    <i class="bi bi-shield-check"></i> Secure Access
+    <i class="bi bi-person-plus"></i> Create Account
   </div>
 </div>
 
@@ -79,40 +76,41 @@
       {% endif %}
     {% endwith %}
 
-    <div class="cbo-avatar"><i class="bi bi-person-fill"></i></div>
+    <div class="cbo-avatar"><i class="bi bi-person-plus-fill"></i></div>
 
     <form method="POST">
       <label>Username</label>
       <div class="cbo-input-group">
         <i class="bi bi-envelope"></i>
-        <input type="text" name="username" required autofocus placeholder="Username">
+        <input type="text" name="username" required autofocus placeholder="Choose a username">
       </div>
 
       <label>Password</label>
       <div class="cbo-input-group">
         <i class="bi bi-lock"></i>
-        <input type="password" name="password" id="cbo-pw" required placeholder="Password">
-        <button type="button" class="toggle-pw" onclick="cboTogglePw()">Show</button>
+        <input type="password" name="password" id="cbo-pw1" required placeholder="At least 6 characters">
+        <button type="button" class="toggle-pw" onclick="cboTogglePw('cbo-pw1', this)">Show</button>
       </div>
 
-      <div class="cbo-row-between">
-        <label><input type="checkbox" name="remember"> Remember me</label>
-        <a href="#">Forgot password?</a>
+      <label>Confirm Password</label>
+      <div class="cbo-input-group">
+        <i class="bi bi-lock"></i>
+        <input type="password" name="confirm" id="cbo-pw2" required placeholder="Re-enter password">
+        <button type="button" class="toggle-pw" onclick="cboTogglePw('cbo-pw2', this)">Show</button>
       </div>
 
-      <button type="submit" class="cbo-login-btn">Log In</button>
+      <button type="submit" class="cbo-login-btn">Create Account</button>
     </form>
 
     <div class="cbo-signup-line">
-      Don't have an account? <a href="{{ url_for('auth.signup') }}">Sign up</a>
+      Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a>
     </div>
   </div>
 </div>
 
 <script>
-  function cboTogglePw() {
-    var pw = document.getElementById('cbo-pw');
-    var btn = document.querySelector('.toggle-pw');
+  function cboTogglePw(id, btn) {
+    var pw = document.getElementById(id);
     if (pw.type === 'password') { pw.type = 'text'; btn.textContent = 'Hide'; }
     else { pw.type = 'password'; btn.textContent = 'Show'; }
   }

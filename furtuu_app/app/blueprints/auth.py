@@ -26,6 +26,35 @@ def login():
     return render_template("auth/login.html")
 
 
+@auth_bp.route("/signup", methods=["GET", "POST"])
+def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboards.home"))
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm", "")
+
+        if not username or not password:
+            flash("Username and password are required.", "danger")
+        elif password != confirm:
+            flash("Passwords do not match.", "danger")
+        elif len(password) < 6:
+            flash("Password must be at least 6 characters.", "danger")
+        elif User.query.filter_by(username=username).first():
+            flash("That username is already taken.", "danger")
+        else:
+            user = User(username=username, role="user")
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+            flash("Account created. You can now log in.", "success")
+            return redirect(url_for("auth.login"))
+
+    return render_template("auth/signup.html")
+
+
 @auth_bp.route("/logout")
 @login_required
 def logout():
