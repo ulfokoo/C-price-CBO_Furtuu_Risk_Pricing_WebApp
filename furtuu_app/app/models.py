@@ -164,6 +164,7 @@ class NGOSupportItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
     name = db.Column(db.String(200), nullable=False)
     percent = db.Column(db.Float, nullable=False, default=0.0)  # fraction, e.g. 0.05 = 5%
+    max_price_impact_pct = db.Column(db.Float, nullable=False, default=0.0)  # this item's own cap, e.g. 0.01 = 1%
     is_active = db.Column(db.Boolean, default=True)
     display_order = db.Column(db.Integer, default=0)
 # ---------------------------------------------------------------------------

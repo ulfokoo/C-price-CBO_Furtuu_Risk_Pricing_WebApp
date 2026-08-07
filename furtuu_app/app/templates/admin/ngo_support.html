@@ -31,14 +31,19 @@
   </div>
 </div>
 
-<p class="text-muted">Total allocated across active items should equal 100%. Cap: 100% allocated = {{ "%.1f%%"|format(result.cap*100) }} price reduction.</p>
+<p class="text-muted">Each item below has its own Max % — its price-impact contribution when it's at 100% allocated. The active items' Max % should add up to the product cap ({{ "%.1f%%"|format(result.cap*100) }}).</p>
+<p class="{{ 'text-success' if (result.total_max_pct*100)|round(2) == (result.cap*100)|round(2) else 'text-danger' }} fw-bold">
+  Sum of active Max %: {{ "%.2f%%"|format(result.total_max_pct*100) }} / Cap: {{ "%.1f%%"|format(result.cap*100) }}
+  {% if (result.total_max_pct*100)|round(2) != (result.cap*100)|round(2) %} — doesn't match yet{% endif %}
+</p>
 
 {% for item in result.rows %}
 <div class="card mb-2">
   <div class="card-body py-2">
     <form method="POST" action="{{ url_for('dashboards.edit_ngo_support', item_id=item.id) }}" class="row g-2 align-items-center">
-      <div class="col-md-5"><input class="form-control form-control-sm" name="name" list="ngo-suggestions" value="{{ item.name }}"></div>
-      <div class="col-md-2"><input class="form-control form-control-sm" type="number" step="0.01" name="percent" value="{{ "%.2f"|format(item.percent*100) }}" title="Percent"></div>
+      <<div class="col-md-4"><input class="form-control form-control-sm" name="name" list="ngo-suggestions" value="{{ item.name }}"></div>
+      <div class="col-md-2"><input class="form-control form-control-sm" type="number" step="0.01" name="percent" value="{{ "%.2f"|format(item.percent*100) }}" title="% currently allocated of this item's own max"></div>
+      <div class="col-md-2"><input class="form-control form-control-sm" type="number" step="0.01" name="max_price_impact_pct" value="{{ "%.2f"|format(item.max_price_impact_pct*100) }}" title="This item's own max % (at 100% allocated)"></div>
       <div class="col-md-1 form-check">
         <input type="checkbox" class="form-check-input" name="is_active" {{ 'checked' if item.is_active }}>
         <label class="form-check-label small">Active</label>
@@ -56,9 +61,10 @@
   <div class="card-header cbo">Add NGO Support Item</div>
   <div class="card-body">
     <form method="POST" action="{{ url_for('dashboards.add_ngo_support', product_id=product.id) }}" class="row g-2">
-      <div class="col-md-6"><input class="form-control" name="name" list="ngo-suggestions" placeholder="e.g. Matching Fund" required></div>
-      <div class="col-md-3"><input class="form-control" type="number" step="0.01" name="percent" placeholder="%" required></div>
-      <div class="col-md-3"><button class="btn btn-success w-100">Add</button></div>
+      <div class="col-md-5"><input class="form-control" name="name" list="ngo-suggestions" placeholder="e.g. Matching Fund" required></div>
+      <div class="col-md-3"><input class="form-control" type="number" step="0.01" name="percent" placeholder="% allocated" required></div>
+      <div class="col-md-2"><input class="form-control" type="number" step="0.01" name="max_price_impact_pct" placeholder="Max %" required></div>
+      <div class="col-md-2"><button class="btn btn-success w-100">Add</button></div>
     </form>
   </div>
 </div>

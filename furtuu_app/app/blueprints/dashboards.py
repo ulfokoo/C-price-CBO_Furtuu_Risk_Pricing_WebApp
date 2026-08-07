@@ -77,8 +77,10 @@ def add_ngo_support(product_id):
     product = get_product_or_404(product_id)
     name = request.form.get("name", "").strip()
     percent = request.form.get("percent", type=float)
+    max_price_impact_pct = request.form.get("max_price_impact_pct", type=float)
     if name and percent is not None:
         db.session.add(NGOSupportItem(product_id=product.id, name=name, percent=percent / 100.0,
+                                        max_price_impact_pct=(max_price_impact_pct or 0) / 100.0,
                                         display_order=len(product.ngo_support_items) + 1))
         db.session.commit()
         flash(f"NGO support item '{name}' added.", "success")
@@ -96,6 +98,9 @@ def edit_ngo_support(item_id):
         item.name = name
     if percent is not None:
         item.percent = percent / 100.0
+    max_price_impact_pct = request.form.get("max_price_impact_pct", type=float)
+    if max_price_impact_pct is not None:
+        item.max_price_impact_pct = max_price_impact_pct / 100.0
     item.is_active = bool(request.form.get("is_active"))
     db.session.commit()
     flash("NGO support item updated.", "success")
