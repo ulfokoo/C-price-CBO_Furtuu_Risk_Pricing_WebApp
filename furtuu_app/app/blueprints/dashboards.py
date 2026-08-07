@@ -84,7 +84,7 @@ def add_ngo_support(product_id):
                                         display_order=len(product.ngo_support_items) + 1))
         db.session.commit()
         flash(f"NGO support item '{name}' added.", "success")
-    return redirect(url_for("dashboards.ngo_support", product_id=product.id))
+    return redirect(request.referrer or url_for("dashboards.ngo_support", product_id=product.id))
 
 
 @dashboards_bp.route("/ngo-support/<int:item_id>/edit", methods=["POST"])
@@ -104,7 +104,7 @@ def edit_ngo_support(item_id):
     item.is_active = bool(request.form.get("is_active"))
     db.session.commit()
     flash("NGO support item updated.", "success")
-    return redirect(url_for("dashboards.ngo_support", product_id=item.product_id))
+    return redirect(request.referrer or url_for("dashboards.ngo_support", product_id=item.product_id))
 
 
 @dashboards_bp.route("/ngo-support/<int:item_id>/delete", methods=["POST"])
@@ -116,5 +116,5 @@ def delete_ngo_support(item_id):
     db.session.delete(item)
     db.session.commit()
     flash("NGO support item deleted.", "info")
-    return redirect(url_for("dashboards.ngo_support", product_id=product_id))
+    return redirect(request.referrer or url_for("dashboards.ngo_support", product_id=product_id))
 

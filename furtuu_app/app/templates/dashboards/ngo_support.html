@@ -17,7 +17,16 @@
     {% for item in result.rows %}
       <tr>
         <td>{{ item.name }}</td>
-        <td>{{ "%.2f%%"|format(item.percent*100) }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('dashboards.edit_ngo_support', item_id=item.id) }}" class="d-flex align-items-center gap-1">
+            <input type="number" step="0.01" min="0" max="100" name="percent"
+                   value="{{ "%.2f"|format(item.percent*100) }}"
+                   class="form-control form-control-sm" style="width:80px">
+            <span>%</span>
+            {% if item.is_active %}<input type="hidden" name="is_active" value="1">{% endif %}
+            <button class="btn btn-sm btn-outline-primary">Save</button>
+          </form>
+        </td>
         <td class="text-muted">{{ "%.2f%%"|format(item.max_price_impact_pct*100) }}</td>
         <td>{{ "Yes" if item.is_active else "No" }}</td>
       </tr>
