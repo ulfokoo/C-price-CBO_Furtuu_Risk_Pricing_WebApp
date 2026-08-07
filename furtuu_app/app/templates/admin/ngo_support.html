@@ -43,7 +43,7 @@
     <form method="POST" action="{{ url_for('dashboards.edit_ngo_support', item_id=item.id) }}" class="row g-2 align-items-center">
       <<div class="col-md-4"><input class="form-control form-control-sm" name="name" list="ngo-suggestions" value="{{ item.name }}"></div>
       <div class="col-md-2"><input class="form-control form-control-sm" type="number" step="0.01" name="percent" value="{{ "%.2f"|format(item.percent*100) }}" title="% currently allocated of this item's own max"></div>
-      <div class="col-md-2"><input class="form-control form-control-sm" type="number" step="0.01" name="max_price_impact_pct" value="{{ "%.2f"|format(item.max_price_impact_pct*100) }}" title="This item's own max % (at 100% allocated)"></div>
+      <div class="col-md-2"><input class="form-control form-control-sm" type="number" step="0.01" name="max_price_impact_pct" value="{{ "%.2f"|format(item.max_price_impact_pct*100) }}" title="This item's own max % (at 100% allocated)" required></div>
       <div class="col-md-1 form-check">
         <input type="checkbox" class="form-check-input" name="is_active" {{ 'checked' if item.is_active }}>
         <label class="form-check-label small">Active</label>
