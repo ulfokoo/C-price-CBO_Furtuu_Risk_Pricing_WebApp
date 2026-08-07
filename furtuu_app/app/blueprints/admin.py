@@ -543,6 +543,11 @@ def edit_repayment_schedule(rs_id):
 def delete_repayment_schedule(rs_id):
     rs = RepaymentSchedule.query.get_or_404(rs_id)
     product_id = rs.product_id
+
+    pin = rs.product.pricing_input if rs.product else None
+    if pin and pin.repayment_schedule_id == rs.id:
+        pin.repayment_schedule_id = None
+
     db.session.delete(rs)
     db.session.commit()
     flash("Repayment schedule deleted.", "info")
