@@ -11,13 +11,13 @@
     <a class="btn btn-sm btn-outline-light" href="{{ url_for('admin.ngo_support_admin', product_id=product.id) }}">Manage in Admin</a>
     {% endif %}
   </div>
-  <table class="table table-sm mb-0">
-    <thead><tr><th>Name</th><th>%</th><th>Active</th></tr></thead>
+  <thead><tr><th>Name</th><th>%</th><th>Max %</th><th>Active</th></tr></thead>
     <tbody>
     {% for item in result.rows %}
       <tr>
         <td>{{ item.name }}</td>
         <td>{{ "%.2f%%"|format(item.percent*100) }}</td>
+        <td class="text-muted">{{ "%.2f%%"|format(item.max_price_impact_pct*100) }}</td>
         <td>{{ "Yes" if item.is_active else "No" }}</td>
       </tr>
     {% endfor %}
@@ -25,7 +25,7 @@
     <tfoot>
       <tr class="fw-bold table-light">
         <td>Total Allocated (should equal 100%)</td>
-        <td colspan="2">{{ "%.2f%%"|format(result.total_pct*100) }} → effective price reduction: {{ "%.2f%%"|format(result.effective_reduction_pct*100) }}</td>
+        <td colspan="3">{{ "%.2f%%"|format(result.total_pct*100) }} → effective price reduction: {{ "%.2f%%"|format(result.effective_reduction_pct*100) }}</td>
       </tr>
     </tfoot>
   </table>
