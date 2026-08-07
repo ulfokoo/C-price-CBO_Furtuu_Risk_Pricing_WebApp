@@ -11,7 +11,8 @@
     <a class="btn btn-sm btn-outline-light" href="{{ url_for('admin.ngo_support_admin', product_id=product.id) }}">Manage in Admin</a>
     {% endif %}
   </div>
-  <thead><tr><th>Name</th><th>%</th><th>Max %</th><th>Active</th></tr></thead>
+  <table class="table table-sm mb-0">
+    <thead><tr><th>Name</th><th>%</th><th>Max %</th><th>Active</th></tr></thead>
     <tbody>
     {% for item in result.rows %}
       <tr>
