@@ -618,6 +618,21 @@ def ngo_support_admin(product_id):
     return render_template("admin/ngo_support.html", product=product, result=result)
 
 
+@admin_bp.route("/products/<int:product_id>/ngo-support/save-cap", methods=["POST"])
+@login_required
+@admin_required
+def save_ngo_cap(product_id):
+    product = Product.query.get_or_404(product_id)
+    pin = product.pricing_input
+    if pin is None:
+        pin = PricingInput(product_id=product.id)
+        db.session.add(pin)
+    pin.ngo_max_price_impact_pct = (request.form.get("ngo_max_price_impact_pct", type=float) or 0) / 100.0
+    db.session.commit()
+    flash("NGO cap updated.", "success")
+    return redirect(url_for("admin.ngo_support_admin", product_id=product.id))
+
+
 @admin_bp.route("/pd-grades/<int:grade_id>/edit", methods=["POST"])
 @login_required
 @admin_required
