@@ -122,7 +122,7 @@
               <select class="form-select form-select-sm" name="tier_{{ item.id }}">
                 <option value="">— not set —</option>
                 {% for tier in item.tiers %}
-                  <option value="{{ tier.id }}" {{ 'selected' if item.selected_tier_id==tier.id }}>{{ tier.label }} ({{ "%.1f%%"|format(tier.rate_reduction*100) }})</option>
+                  <option value="{{ tier.id }}" {{ 'selected' if item.selected_tier_id==tier.id }}>{{ tier.label }}</option>
                 {% endfor %}
               </select>
               {% else %}
@@ -134,7 +134,14 @@
               </div>
               {% endif %}
             </td>
-            <td class="text-muted">{{ "%.2f%%"|format((item.tiers|map(attribute='rate_reduction')|max if item.tiers else item.max_price_impact_pct)*100) }}</td>
+            <td class="text-muted">
+              {% if item.tiers %}
+                {{ "%.2f%%"|format((item.selected_tier.rate_reduction if item.selected_tier else 0.0)*100) }}
+              {% else %}
+                {{ "%.2f%%"|format(item.max_price_impact_pct*100) }}
+              {% endif %}
+            </td>
+          
             <td>{{ "Yes" if item.is_active else "No" }}</td>
           </tr>
         {% else %}

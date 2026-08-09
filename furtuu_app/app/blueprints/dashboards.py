@@ -36,6 +36,8 @@ def pricing(product_id):
     if not product.pricing_input:
         return render_template("dashboards/pricing_missing.html", product=product)
     result = calc.compute_pricing(product)
+    if result is None:
+        return render_template("dashboards/pricing_missing.html", product=product)
     return render_template("dashboards/pricing.html", product=product, result=result)
 
 
