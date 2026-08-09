@@ -426,6 +426,18 @@ def debug_pricing(product_id):
         data["compute_pricing_result"] = "SUCCESS" if result is not None else "RETURNED NONE"
     except Exception as e:
         data["compute_pricing_result"] = f"EXCEPTION: {type(e).__name__}: {e}"
+
+    import inspect
+    from app import calculations as calc
+    data["compute_pricing_source"] = inspect.getsource(calc.compute_pricing)
+
+    from app.models import PricingInput
+    fresh_pin = PricingInput.query.filter_by(product_id=product.id).first()
+    data["fresh_query_pricing_input_found"] = fresh_pin is not None
+
+    pin_again = product.pricing_input
+    data["pricing_input_second_access"] = pin_again is not None
+
     return jsonify(data)
 
 # ---------------------------------------------------------------------------
