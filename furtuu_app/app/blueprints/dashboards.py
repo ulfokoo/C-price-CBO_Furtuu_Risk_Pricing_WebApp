@@ -131,3 +131,21 @@ def select_ngo_tier(item_id):
     flash(f"{item.name} range updated.", "success")
     return redirect(request.referrer or url_for("dashboards.ngo_support", product_id=item.product_id))
 
+
+@dashboards_bp.route("/product/<int:product_id>/ngo-support/save-all", methods=["POST"])
+@login_required
+def save_ngo_selections(product_id):
+    from flask import request, redirect, url_for, flash
+    product = get_product_or_404(product_id)
+    for item in product.ngo_support_items:
+        if item.tiers:
+            tier_id = request.form.get(f"tier_{item.id}", type=int)
+            item.selected_tier_id = tier_id if tier_id else None
+        else:
+            percent = request.form.get(f"percent_{item.id}", type=float)
+            if percent is not None:
+                item.percent = percent / 100.0
+    db.session.commit()
+    flash("NGO support selections updated.", "success")
+    return redirect(request.referrer or url_for("input.dashboard", product_id=product_id))
+

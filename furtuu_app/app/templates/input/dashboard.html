@@ -102,6 +102,7 @@
     {% endif %}
   </div>
   <div class="card-body">
+    <form method="POST" action="{{ url_for('dashboards.save_ngo_selections', product_id=product.id) }}">
     <div class="table-responsive mb-2">
       <table class="table table-sm mb-0">
         <thead>
@@ -118,23 +119,19 @@
             <td>{{ item.name }}</td>
             <td>
               {% if item.tiers %}
-              <form method="POST" action="{{ url_for('dashboards.select_ngo_tier', item_id=item.id) }}">
-                <select class="form-select form-select-sm" name="tier_id" onchange="this.form.submit()">
-                  <option value="">— not set —</option>
-                  {% for tier in item.tiers %}
-                    <option value="{{ tier.id }}" {{ 'selected' if item.selected_tier_id==tier.id }}>{{ tier.label }} ({{ "%.1f%%"|format(tier.rate_reduction*100) }})</option>
-                  {% endfor %}
-                </select>
-              </form>
+              <select class="form-select form-select-sm" name="tier_{{ item.id }}">
+                <option value="">— not set —</option>
+                {% for tier in item.tiers %}
+                  <option value="{{ tier.id }}" {{ 'selected' if item.selected_tier_id==tier.id }}>{{ tier.label }} ({{ "%.1f%%"|format(tier.rate_reduction*100) }})</option>
+                {% endfor %}
+              </select>
               {% else %}
-              <form method="POST" action="{{ url_for('dashboards.edit_ngo_support', item_id=item.id) }}" class="d-flex align-items-center gap-1">
-                <input type="number" step="0.01" min="0" max="100" name="percent"
+              <div class="d-flex align-items-center gap-1">
+                <input type="number" step="0.01" min="0" max="100" name="percent_{{ item.id }}"
                        value="{{ "%.2f"|format(item.percent*100) }}"
                        class="form-control form-control-sm" style="width:90px">
                 <span>%</span>
-                {% if item.is_active %}<input type="hidden" name="is_active" value="1">{% endif %}
-                <button class="btn btn-sm btn-outline-primary">Save</button>
-              </form>
+              </div>
               {% endif %}
             </td>
             <td class="text-muted">{{ "%.2f%%"|format((item.tiers|map(attribute='rate_reduction')|max if item.tiers else item.max_price_impact_pct)*100) }}</td>
@@ -152,6 +149,10 @@
         </tfoot>
       </table>
     </div>
+    {% if ngo_result.rows %}
+    <button type="submit" class="btn btn-success"><i class="bi bi-heart-fill"></i> Save &amp; Reprice</button>
+    {% endif %}
+    </form>
   </div>
 </div>
 {% endif %}
