@@ -19,36 +19,63 @@
     <label class="form-label">NGO Support Max Price Impact (%) — what a 100% allocation is worth</label>
     <form method="POST" action="{{ url_for('admin.save_ngo_cap', product_id=product.id) }}" class="row g-2">
       <div class="col-md-3">
-        <input class="form-control form-control-sm" type="number" step="0.1" name="ngo_max_price_impact_pct"
-               value="{{ "%.1f"|format((product.pricing_input.ngo_max_price_impact_pct or 0.05) * 100) }}">
+        <input class="form-control form-control-sm" type="number" step="0.01" name="ngo_max_price_impact_pct"
+               value="{{ "%.2f"|format((product.pricing_input.ngo_max_price_impact_pct or 0.0655) * 100) }}">
       </div>
       <div class="col-md-2"><button class="btn btn-sm btn-success w-100">Save Cap</button></div>
     </form>
-    <div class="form-text">This uses the same field as the full Pricing Inputs page, so saving here updates it everywhere.</div>
+    <div class="form-text">This uses the same field as the full Pricing Inputs page, so saving here updates it everywhere. Whatever the items add up to, the final price reduction is always clipped to this cap.</div>
   </div>
 </div>
 
-<p class="text-muted">Each item below has its own Max % — its price-impact contribution when it's at 100% allocated. The active items' Max % should add up to the product cap ({{ "%.1f%%"|format(result.cap*100) }}).</p>
+<p class="text-muted">Each item below either has a <strong>fixed Max %</strong> (a plain % allocated by the loan officer) or a set of <strong>Ranges</strong> (a dropdown like "40%-50% = 2.2%", picked directly by the loan officer). Add, edit, or delete ranges the same way you edit scoring attributes on the Scorecard Builder.</p>
 <p class="{{ 'text-success' if (result.total_max_pct*100)|round(2) == (result.cap*100)|round(2) else 'text-danger' }} fw-bold">
-  Sum of active Max %: {{ "%.2f%%"|format(result.total_max_pct*100) }} / Cap: {{ "%.1f%%"|format(result.cap*100) }}
-  {% if (result.total_max_pct*100)|round(2) != (result.cap*100)|round(2) %} — doesn't match yet{% endif %}
+  Sum of active Max %: {{ "%.2f%%"|format(result.total_max_pct*100) }} / Cap: {{ "%.2f%%"|format(result.cap*100) }}
+  {% if (result.total_max_pct*100)|round(2) != (result.cap*100)|round(2) %} — doesn't match yet (this is just a guide; the cap is always enforced regardless){% endif %}
 </p>
 
 {% for item in result.rows %}
-<div class="card mb-2">
-  <div class="card-body py-2">
-    <form method="POST" action="{{ url_for('dashboards.edit_ngo_support', item_id=item.id) }}" class="row g-2 align-items-center">
-      <<div class="col-md-4"><input class="form-control form-control-sm" name="name" list="ngo-suggestions" value="{{ item.name }}"></div>
-      <div class="col-md-2"><input class="form-control form-control-sm" type="number" step="0.01" name="percent" value="{{ "%.2f"|format(item.percent*100) }}" title="% currently allocated of this item's own max"></div>
-      <div class="col-md-2"><input class="form-control form-control-sm" type="number" step="0.01" name="max_price_impact_pct" value="{{ "%.2f"|format(item.max_price_impact_pct*100) }}" title="This item's own max % (at 100% allocated)" required></div>
-      <div class="col-md-1 form-check">
+<div class="card mb-3">
+  <div class="card-header cbo d-flex justify-content-between align-items-center">
+    <form method="POST" action="{{ url_for('dashboards.edit_ngo_support', item_id=item.id) }}" class="d-flex gap-2 flex-grow-1 me-2 align-items-center">
+      <input class="form-control form-control-sm" name="name" list="ngo-suggestions" value="{{ item.name }}" style="max-width:260px">
+      {% if not item.tiers %}
+      <input class="form-control form-control-sm" type="number" step="0.01" name="percent"
+             value="{{ "%.2f"|format(item.percent*100) }}" style="max-width:90px" title="% currently allocated">
+      <span class="text-white">%</span>
+      {% endif %}
+      <input class="form-control form-control-sm" type="number" step="0.01" name="max_price_impact_pct"
+             value="{{ "%.2f"|format(item.max_price_impact_pct*100) }}" style="max-width:90px" title="This item's own Max % contribution at 100% allocated">
+      <span class="text-white">Max%</span>
+      <div class="form-check form-check-inline ms-2">
         <input type="checkbox" class="form-check-input" name="is_active" {{ 'checked' if item.is_active }}>
-        <label class="form-check-label small">Active</label>
+        <label class="form-check-label text-white small">Active</label>
       </div>
-      <div class="col-md-2"><button class="btn btn-sm btn-outline-primary w-100">Save</button></div>
-      <div class="col-md-2">
-        <button type="submit" formaction="{{ url_for('dashboards.delete_ngo_support', item_id=item.id) }}" class="btn btn-sm btn-outline-danger w-100" onclick="return confirm('Delete this item?');">Delete</button>
-      </div>
+      <button class="btn btn-sm btn-light">Save</button>
+    </form>
+    <form method="POST" action="{{ url_for('dashboards.delete_ngo_support', item_id=item.id) }}" onsubmit="return confirm('Delete this NGO support item and all its ranges?');">
+      <button class="btn btn-sm btn-outline-light">Delete Item</button>
+    </form>
+  </div>
+  <div class="card-body">
+    <strong class="small text-muted">Ranges (dropdown options the loan officer picks from):</strong>
+    <div class="d-flex flex-wrap gap-2 my-2">
+    {% for tier in item.tiers %}
+      <form method="POST" action="{{ url_for('admin.edit_ngo_tier', tier_id=tier.id) }}" class="d-flex gap-1 align-items-center border rounded p-1 bg-light">
+        <input class="form-control form-control-sm" name="label" value="{{ tier.label }}" style="width:120px" title="Range label shown in the dropdown, e.g. '40%-50%'">
+        <input class="form-control form-control-sm" type="number" step="0.01" name="rate_reduction" value="{{ "%.2f"|format(tier.rate_reduction*100) }}" style="width:80px" title="Price reduction % for this range, e.g. 2.5">
+        <span>%</span>
+        <button class="btn btn-sm btn-outline-primary">✓</button>
+        <button type="submit" formaction="{{ url_for('admin.delete_ngo_tier', tier_id=tier.id) }}" formnovalidate class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this range?');">✕</button>
+      </form>
+    {% else %}
+      <span class="text-muted small">No ranges yet — this item uses a plain % Allocated instead. Add a range below to switch it to a dropdown.</span>
+    {% endfor %}
+    </div>
+    <form method="POST" action="{{ url_for('admin.add_ngo_tier', item_id=item.id) }}" class="d-flex gap-1">
+      <input class="form-control form-control-sm" name="label" placeholder="New range label, e.g. 40%-50%" style="width:220px" required>
+      <input class="form-control form-control-sm" type="number" step="0.01" name="rate_reduction" placeholder="Reduction %, e.g. 2.5" style="width:160px" required>
+      <button class="btn btn-sm btn-success">Add Range</button>
     </form>
   </div>
 </div>
@@ -59,12 +86,13 @@
   <div class="card-body">
     <form method="POST" action="{{ url_for('dashboards.add_ngo_support', product_id=product.id) }}" class="row g-2">
       <div class="col-md-5"><input class="form-control" name="name" list="ngo-suggestions" placeholder="e.g. Matching Fund" required></div>
-      <div class="col-md-3"><input class="form-control" type="number" step="0.01" name="percent" placeholder="% allocated" required></div>
+      <div class="col-md-3"><input class="form-control" type="number" step="0.01" name="percent" placeholder="% allocated (0 if using ranges)" value="0" required></div>
       <div class="col-md-2"><input class="form-control" type="number" step="0.01" name="max_price_impact_pct" placeholder="Max %" required></div>
       <div class="col-md-2"><button class="btn btn-success w-100">Add</button></div>
     </form>
+    <div class="form-text">After adding, use "Add Range" on the new item's card below to give it dropdown ranges instead of a plain %.</div>
   </div>
 </div>
 
-<p class="fw-bold mt-3">Total Allocated: {{ "%.2f%%"|format(result.total_pct*100) }} → effective price reduction: {{ "%.2f%%"|format(result.effective_reduction_pct*100) }}</p>
+<p class="fw-bold mt-3">Total Allocated: {{ "%.2f%%"|format(result.total_pct*100) }} → effective price reduction: {{ "%.2f%%"|format(result.effective_reduction_pct*100) }} (capped at {{ "%.2f%%"|format(result.cap*100) }})</p>
 {% endblock %}

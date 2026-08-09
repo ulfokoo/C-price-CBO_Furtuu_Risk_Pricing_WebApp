@@ -6,7 +6,8 @@ from flask_login import login_required, current_user
 from app import db
 from app.models import (
     Product, ScoreCategory, SubParameter, ScoringOption, PricingInput,
-    CostOfFundSource, RWAOption, RepaymentSchedule, OperationalCostComponent, PDGrade
+    CostOfFundSource, RWAOption, RepaymentSchedule, OperationalCostComponent, PDGrade,
+    NGOSupportItem, NGOSupportTier,
 )
 
 admin_bp = Blueprint("admin", __name__)
@@ -631,6 +632,55 @@ def save_ngo_cap(product_id):
     db.session.commit()
     flash("NGO cap updated.", "success")
     return redirect(url_for("admin.ngo_support_admin", product_id=product.id))
+
+
+@admin_bp.route("/ngo-items/<int:item_id>/tiers/add", methods=["POST"])
+@login_required
+@admin_required
+def add_ngo_tier(item_id):
+    item = NGOSupportItem.query.get_or_404(item_id)
+    label = request.form.get("label", "").strip()
+    rate_reduction = request.form.get("rate_reduction", type=float)
+    if label and rate_reduction is not None:
+        order = len(item.tiers) + 1
+        db.session.add(NGOSupportTier(item_id=item.id, label=label,
+                                        rate_reduction=rate_reduction / 100.0,
+                                        display_order=order))
+        db.session.commit()
+        flash(f"Range '{label}' added to {item.name}.", "success")
+    return redirect(url_for("admin.ngo_support_admin", product_id=item.product_id))
+
+
+@admin_bp.route("/ngo-tiers/<int:tier_id>/edit", methods=["POST"])
+@login_required
+@admin_required
+def edit_ngo_tier(tier_id):
+    tier = NGOSupportTier.query.get_or_404(tier_id)
+    item = NGOSupportItem.query.get_or_404(tier.item_id)
+    label = request.form.get("label", "").strip()
+    rate_reduction = request.form.get("rate_reduction", type=float)
+    if label:
+        tier.label = label
+    if rate_reduction is not None:
+        tier.rate_reduction = rate_reduction / 100.0
+    db.session.commit()
+    flash("Range updated.", "success")
+    return redirect(url_for("admin.ngo_support_admin", product_id=item.product_id))
+
+
+@admin_bp.route("/ngo-tiers/<int:tier_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_ngo_tier(tier_id):
+    tier = NGOSupportTier.query.get_or_404(tier_id)
+    item = NGOSupportItem.query.get_or_404(tier.item_id)
+    product_id = item.product_id
+    if item.selected_tier_id == tier.id:
+        item.selected_tier_id = None
+    db.session.delete(tier)
+    db.session.commit()
+    flash("Range deleted.", "info")
+    return redirect(url_for("admin.ngo_support_admin", product_id=product_id))
 
 
 @admin_bp.route("/pd-grades/<int:grade_id>/edit", methods=["POST"])
