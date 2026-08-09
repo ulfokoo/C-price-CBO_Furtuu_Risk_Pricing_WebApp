@@ -36,15 +36,15 @@
       {% for sp in cat.sub_parameters %}
         <tr>
           <td colspan="4" class="p-0">
-            <form method="POST" action="{{ url_for('admin.edit_sub_parameter', sp_id=sp.id) }}" class="d-flex gap-2 align-items-center p-2">
-              <input class="form-control form-control-sm" name="name" value="{{ sp.name }}" style="max-width:260px">
-              <input class="form-control form-control-sm" type="number" step="0.01" name="weight" value="{{ (sp.weight*100)|round(2) }}" style="max-width:100px">
-              <select class="form-select form-select-sm" name="category_id" style="max-width:220px">
+            <form method="POST" action="{{ url_for('admin.edit_sub_parameter', sp_id=sp.id) }}" class="sp-edit-form d-flex gap-2 align-items-center p-2">
+              <input class="form-control form-control-sm sp-name" name="name" value="{{ sp.name }}" style="max-width:260px" required>
+              <input class="form-control form-control-sm sp-weight" type="number" step="0.01" name="weight" value="{{ (sp.weight*100)|round(2) }}" style="max-width:100px" required>
+              <select class="form-select form-select-sm sp-category" name="category_id" style="max-width:220px" required>
                 {% for c in product.categories %}
                   <option value="{{ c.id }}" {{ 'selected' if c.id==cat.id }}>{{ c.name }}</option>
                 {% endfor %}
               </select>
-              <button class="btn btn-sm btn-outline-primary">Save</button>
+              <button class="btn btn-sm btn-outline-primary sp-save-btn">Save</button>
             </form>
           </td>
         </tr>
@@ -83,4 +83,25 @@
   </div>
 </div>
 {% endfor %}
+
+<script>
+document.querySelectorAll('.sp-edit-form').forEach(function(form) {
+  var nameInput = form.querySelector('.sp-name');
+  var weightInput = form.querySelector('.sp-weight');
+  var categorySelect = form.querySelector('.sp-category');
+  var saveBtn = form.querySelector('.sp-save-btn');
+
+  function toggleSave() {
+    var filled = nameInput.value.trim() !== '' &&
+                 weightInput.value.trim() !== '' &&
+                 categorySelect.value !== '';
+    saveBtn.disabled = !filled;
+  }
+
+  nameInput.addEventListener('input', toggleSave);
+  weightInput.addEventListener('input', toggleSave);
+  categorySelect.addEventListener('change', toggleSave);
+  toggleSave();
+});
+</script>
 {% endblock %}
