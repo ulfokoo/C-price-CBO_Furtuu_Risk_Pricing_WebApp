@@ -38,7 +38,7 @@
   <div class="card-header cbo">Price Across Bankable Risk Grade</div>
   <div class="table-responsive">
     <table class="table table-sm table-striped mb-0">
-      <thead><tr><th>Grade</th><th>PD</th><th>Target Return</th><th>Cost of Fund</th><th>Tenure Charge</th><th>Op. Cost</th><th>Credit Risk Premium</th><th>Interest Rate (Annual)</th><th>Interest Rate (Tenor)</th></tr></thead>
+      <thead><tr><th>Grade</th><th>PD</th><th>Target Return</th><th>Cost of Fund</th><th>Tenure Charge</th><th>Op. Cost</th><th>Credit Risk Premium</th><th>Interest Rate (Annual)</th><th>Interest Rate (Tenor)</th><th>NGO</th><th>Interest Rate (Annual) after NGO</th><th>Interest Rate (Tenor) after NGO</th></tr></thead>
       <tbody>
       {% for r in result.grade_rows %}
         <tr>
@@ -51,6 +51,9 @@
           <td>{{ "%.3f%%"|format(r.credit_risk_premium*100) }}</td>
           <td class="fw-bold">{{ "%.3f%%"|format(r.interest_rate_annual*100) }}</td>
           <td class="fw-bold">{{ "%.3f%%"|format(r.interest_rate_tenor*100) }}</td>
+          <td class="text-info">-{{ "%.3f%%"|format(r.ngo_reduction*100) }}</td>
+          <td class="fw-bold table-success">{{ "%.3f%%"|format(r.interest_rate_annual_after_ngo*100) }}</td>
+          <td class="fw-bold table-success">{{ "%.3f%%"|format(r.interest_rate_tenor_after_ngo*100) }}</td>
         </tr>
       {% endfor %}
       </tbody>
