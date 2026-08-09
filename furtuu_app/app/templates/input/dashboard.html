@@ -96,7 +96,7 @@
 {% if ngo_result %}
 <div class="card mb-4">
   <div class="card-header cbo d-flex justify-content-between align-items-center">
-    <span>NGO Support <span class="fw-normal">(cap: 100% allocated = {{ "%.1f%%"|format(ngo_result.cap*100) }} price reduction)</span></span>
+    <span>NGO Support <span class="fw-normal">(cap: 100% allocated = {{ "%.2f%%"|format(ngo_result.cap*100) }} price reduction)</span></span>
     {% if current_user.is_admin %}
     <a class="btn btn-sm btn-outline-light" href="{{ url_for('admin.ngo_support_admin', product_id=product.id) }}">Manage in Admin</a>
     {% endif %}
