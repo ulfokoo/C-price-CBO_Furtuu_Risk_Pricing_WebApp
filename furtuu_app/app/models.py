@@ -261,7 +261,7 @@ class PricingInput(db.Model):
 
     loss_given_default = db.Column(db.Float, default=0.5)          # C17
     exposure_at_default = db.Column(db.Float, default=1.0)         # C18
-    ngo_max_price_impact_pct = db.Column(db.Float, nullable=False, default=0.05)  # 100% NGO alloc → this much price cut
+    ngo_max_price_impact_pct = db.Column(db.Float, nullable=False, default=0.0655)  # 100% NGO alloc → this much price cut
 
     repayment_schedule_id = db.Column(db.Integer, db.ForeignKey("repayment_schedules.id"))  # E28
     expected_access_fee_pct = db.Column(db.Float, default=0.035)   # C31

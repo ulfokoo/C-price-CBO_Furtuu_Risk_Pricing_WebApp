@@ -107,6 +107,19 @@ def edit_ngo_support(item_id):
     return redirect(request.referrer or url_for("dashboards.ngo_support", product_id=item.product_id))
 
 
+@dashboards_bp.route("/ngo-support/<int:item_id>/delete", methods=["POST"])
+@login_required
+def delete_ngo_support(item_id):
+    from flask import request, redirect, url_for, flash
+    item = NGOSupportItem.query.get_or_404(item_id)
+    product_id = item.product_id
+    name = item.name
+    db.session.delete(item)
+    db.session.commit()
+    flash(f"NGO support item '{name}' deleted.", "success")
+    return redirect(request.referrer or url_for("dashboards.ngo_support", product_id=product_id))
+
+
 @dashboards_bp.route("/ngo-support/<int:item_id>/select-tier", methods=["POST"])
 @login_required
 def select_ngo_tier(item_id):

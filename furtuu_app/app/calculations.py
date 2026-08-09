@@ -11,7 +11,7 @@ All functions are pure: they read a Product's related rows and return plain
 dict/number results. Nothing here mutates the database.
 """
 
-NGO_MAX_PRICE_IMPACT_PCT = 0.05  # 100% NGO allocation = max 5% price reduction
+NGO_MAX_PRICE_IMPACT_PCT = 0.0655  # 100% NGO allocation = max 6.55% price reduction
 
 
 def compute_scorecard(product):
@@ -79,19 +79,23 @@ def compute_ngo_support(product):
     cap = product.pricing_input.ngo_max_price_impact_pct if product.pricing_input else NGO_MAX_PRICE_IMPACT_PCT
     total_pct = min(sum(r.percent for r in rows if r.is_active), 1.0)
     total_max_pct = sum(r.max_price_impact_pct for r in rows if r.is_active)
-    effective_reduction_pct = 0.0
+    raw_reduction_pct = 0.0
     for r in rows:
         if not r.is_active:
             continue
         if r.tiers:
-            effective_reduction_pct += r.selected_tier.rate_reduction if r.selected_tier else 0.0
+            raw_reduction_pct += r.selected_tier.rate_reduction if r.selected_tier else 0.0
         else:
-            effective_reduction_pct += r.percent * r.max_price_impact_pct
+            raw_reduction_pct += r.percent * r.max_price_impact_pct
+    # However many items are active/allocated, the combined price reduction
+    # can never exceed the product's cap — items don't simply stack past it.
+    effective_reduction_pct = min(raw_reduction_pct, cap)
     return {
         "rows": rows,
         "total_pct": total_pct,
         "total_max_pct": total_max_pct,
         "cap": cap,
+        "raw_reduction_pct": raw_reduction_pct,
         "effective_reduction_pct": effective_reduction_pct,
     }
 

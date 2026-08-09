@@ -27,7 +27,7 @@
             <button class="btn btn-sm btn-outline-primary">Save</button>
           </form>
         </td>
-        <td class="text-muted">{{ "%.2f%%"|format(item.max_price_impact_pct*100) }}</td>
+        <td class="text-muted">{{ "%.2f%%"|format((item.tiers|map(attribute='rate_reduction')|max if item.tiers else item.max_price_impact_pct)*100) }}</td>
         <td>{{ "Yes" if item.is_active else "No" }}</td>
       </tr>
     {% endfor %}

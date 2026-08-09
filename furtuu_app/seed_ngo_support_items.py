@@ -13,10 +13,6 @@ with app.app_context():
         items = [
             ("Matching Fund", 10.0),
             ("Seed Money NGO", 10.0),
-            ("Input Financing (direct to Vendor)", 20.0),
-            ("Technical Support", 20.0),
-            ("Operational Support", 10.0),
-            ("Grant Funding", 5.0),
             ("Insurance Coverage", 5.0),
         ]
         for i, (name, pct) in enumerate(items, start=1):
@@ -29,7 +25,7 @@ with app.app_context():
             ))
 
         if product.pricing_input:
-            product.pricing_input.ngo_max_price_impact_pct = 0.05
+            product.pricing_input.ngo_max_price_impact_pct = 0.0655
 
         db.session.commit()
-        print("NGO support items seeded, cap set to 5%.")
+        print("NGO support items seeded, cap set to 6.55%.")
