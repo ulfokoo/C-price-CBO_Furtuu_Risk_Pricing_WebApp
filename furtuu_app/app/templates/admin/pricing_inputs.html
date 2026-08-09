@@ -55,8 +55,8 @@
       </div>
       <div class="mb-3">
         <label class="form-label">NGO Support Max Price Impact (%) — what a 100% NGO allocation is worth</label>
-        <input class="form-control" type="number" step="0.1" name="ngo_max_price_impact_pct"
-              value="{{ "%.1f"|format((pin.ngo_max_price_impact_pct or 0.05) * 100) }}">
+        <input class="form-control" type="number" step="0.01" name="ngo_max_price_impact_pct"
+              value="{{ "%.2f"|format((pin.ngo_max_price_impact_pct or 0.0655) * 100) }}">
       </div>
       <div class="col-12">
         <button class="btn btn-success">Save Pricing Inputs</button>
