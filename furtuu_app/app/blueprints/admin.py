@@ -1,6 +1,6 @@
 from functools import wraps
 
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_required, current_user
 
 from app import db
@@ -395,6 +395,38 @@ def pricing_inputs(product_id):
         return redirect(url_for("admin.pricing_inputs", product_id=product.id))
     return render_template("admin/pricing_inputs.html", product=product, pin=pin)
 
+
+
+@admin_bp.route("/products/<int:product_id>/debug-pricing")
+@login_required
+@admin_required
+def debug_pricing(product_id):
+    product = Product.query.get_or_404(product_id)
+    pin = product.pricing_input
+    data = {
+        "product_id": product.id,
+        "product_name": product.name,
+        "has_pricing_input": pin is not None,
+    }
+    if pin:
+        data.update({
+            "pricing_input_id": pin.id,
+            "pricing_input_product_id": pin.product_id,
+            "cost_of_capital": pin.cost_of_capital,
+            "target_return_on_rwa": pin.target_return_on_rwa,
+            "loan_amount": pin.loan_amount,
+            "rwa_option_id": pin.rwa_option_id,
+            "repayment_schedule_id": pin.repayment_schedule_id,
+            "loss_given_default": pin.loss_given_default,
+            "exposure_at_default": pin.exposure_at_default,
+        })
+    try:
+        from app import calculations as calc
+        result = calc.compute_pricing(product)
+        data["compute_pricing_result"] = "SUCCESS" if result is not None else "RETURNED NONE"
+    except Exception as e:
+        data["compute_pricing_result"] = f"EXCEPTION: {type(e).__name__}: {e}"
+    return jsonify(data)
 
 # ---------------------------------------------------------------------------
 # Cost of Fund sources
