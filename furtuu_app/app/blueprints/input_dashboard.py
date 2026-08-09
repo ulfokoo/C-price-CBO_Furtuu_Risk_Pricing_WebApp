@@ -16,14 +16,17 @@ def input_dashboard():
     product = None
     result = None
     pricing_result = None
+    ngo_result = None
     if product_id:
         product = Product.query.get_or_404(product_id)
         result = calc.compute_scorecard(product)
+        ngo_result = calc.compute_ngo_support(product)
         if product.pricing_input:
             pricing_result = calc.compute_pricing(product)
     elif products:
         product = products[0]
         result = calc.compute_scorecard(product)
+        ngo_result = calc.compute_ngo_support(product)
         if product.pricing_input:
             pricing_result = calc.compute_pricing(product)
 
@@ -33,6 +36,7 @@ def input_dashboard():
         product=product,
         result=result,
         pricing_result=pricing_result,
+        ngo_result=ngo_result,
     )
 
 
