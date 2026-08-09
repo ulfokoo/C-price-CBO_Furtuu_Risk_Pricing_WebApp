@@ -12,37 +12,38 @@
     {% endif %}
   </div>
   <table class="table table-sm mb-0">
-    <thead><tr><th>Name</th><th>%</th><th>Max %</th><th>Active</th></tr></thead>
+    <thead><tr><th>Name</th><th>% Allocated</th><th>Max %</th><th>Active</th></tr></thead>
     <tbody>
     {% for item in result.rows %}
       <tr>
         <td>{{ item.name }}</td>
         <td>
-          <form method="POST" action="{{ url_for('dashboards.edit_ngo_support', item_id=item.id) }}" class="d-flex align-items-center gap-1">
-            <input type="number" step="0.01" min="0" max="100" name="percent"
-                   value="{{ "%.2f"|format(item.percent*100) }}"
-                   class="form-control form-control-sm" style="width:80px">
-            <span>%</span>
-            {% if item.is_active %}<input type="hidden" name="is_active" value="1">{% endif %}
-            <button class="btn btn-sm btn-outline-primary">Save</button>
-          </form>
+          {% if item.tiers %}
+            {{ item.selected_tier.label if item.selected_tier else "— not set —" }}
+            ({{ "%.1f%%"|format((item.selected_tier.rate_reduction if item.selected_tier else 0)*100) }})
+          {% else %}
+            {{ "%.2f%%"|format(item.percent*100) }}
+          {% endif %}
         </td>
         <td class="text-muted">{{ "%.2f%%"|format((item.tiers|map(attribute='rate_reduction')|max if item.tiers else item.max_price_impact_pct)*100) }}</td>
         <td>{{ "Yes" if item.is_active else "No" }}</td>
       </tr>
+    {% else %}
+      <tr><td colspan="4" class="text-muted">No NGO support items yet.</td></tr>
     {% endfor %}
     </tbody>
     <tfoot>
       <tr class="fw-bold table-light">
-        <td>Total Allocated (should equal 100%)</td>
+        <td>Total Allocated</td>
         <td colspan="3">{{ "%.2f%%"|format(result.total_pct*100) }} → effective price reduction: {{ "%.2f%%"|format(result.effective_reduction_pct*100) }}</td>
       </tr>
     </tfoot>
   </table>
 </div>
-{% if current_user.is_admin %}
-<p class="text-muted mt-2">To add, edit, delete, or change the cap %, use <a href="{{ url_for('admin.ngo_support_admin', product_id=product.id) }}">Admin → NGO Support</a>.</p>
-{% else %}
-<p class="text-muted mt-2">Only admins can add, edit, or delete NGO support items.</p>
-{% endif %}
+<p class="text-muted mt-2">
+  This is a read-only summary. To change allocations, use the <a href="{{ url_for('input.input_dashboard', product_id=product.id) }}">Input Dashboard</a>.
+  {% if current_user.is_admin %}
+  To add, edit, delete, or change the cap %, use <a href="{{ url_for('admin.ngo_support_admin', product_id=product.id) }}">Admin → NGO Support</a>.
+  {% endif %}
+</p>
 {% endblock %}
