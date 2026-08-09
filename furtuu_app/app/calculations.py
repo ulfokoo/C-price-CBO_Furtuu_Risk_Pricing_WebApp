@@ -76,10 +76,17 @@ def grade_from_score(score):
 
 def compute_ngo_support(product):
     rows = list(product.ngo_support_items)
-    cap = product.pricing_input.ngo_max_price_impact_pct if product.pricing_input else NGO_MAX_PRICE_IMPACT_PCT_DEFAULT
+    cap = product.pricing_input.ngo_max_price_impact_pct if product.pricing_input else NGO_MAX_PRICE_IMPACT_PCT
     total_pct = min(sum(r.percent for r in rows if r.is_active), 1.0)
     total_max_pct = sum(r.max_price_impact_pct for r in rows if r.is_active)
-    effective_reduction_pct = sum(r.percent * r.max_price_impact_pct for r in rows if r.is_active)
+    effective_reduction_pct = 0.0
+    for r in rows:
+        if not r.is_active:
+            continue
+        if r.tiers:
+            effective_reduction_pct += r.selected_tier.rate_reduction if r.selected_tier else 0.0
+        else:
+            effective_reduction_pct += r.percent * r.max_price_impact_pct
     return {
         "rows": rows,
         "total_pct": total_pct,

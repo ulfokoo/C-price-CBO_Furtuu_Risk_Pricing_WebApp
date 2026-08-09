@@ -157,7 +157,11 @@ class PDGrade(db.Model):
 
 class NGOSupportItem(db.Model):
     """A line item like 'Matching Fund', 'Grant Funding', etc. Each has a
-    % that, summed across all active items, reduces the final required rate."""
+    % that, summed across all active items, reduces the final required rate.
+
+    If the item has Tiers (see NGOSupportTier), the user picks a range from a
+    dropdown (like the Excel 'NGO Impact' table) instead of typing a raw %,
+    and the tier's own rate_reduction is used directly."""
     __tablename__ = "ngo_support_items"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -166,6 +170,25 @@ class NGOSupportItem(db.Model):
     percent = db.Column(db.Float, nullable=False, default=0.0)  # fraction, e.g. 0.05 = 5%
     max_price_impact_pct = db.Column(db.Float, nullable=False, default=0.0)  # this item's own cap, e.g. 0.01 = 1%
     is_active = db.Column(db.Boolean, default=True)
+    display_order = db.Column(db.Integer, default=0)
+    selected_tier_id = db.Column(db.Integer, db.ForeignKey("ngo_support_tiers.id"), nullable=True)
+
+    tiers = db.relationship("NGOSupportTier", cascade="all, delete-orphan",
+                             order_by="NGOSupportTier.display_order",
+                             foreign_keys="NGOSupportTier.item_id")
+    selected_tier = db.relationship("NGOSupportTier", foreign_keys=[selected_tier_id],
+                                     post_update=True)
+
+
+class NGOSupportTier(db.Model):
+    """A dropdown range option for an NGOSupportItem, e.g. Seed Fund '>50%'
+    -> 2.8% rate reduction, mirroring the Excel 'NGO Impact' Range table."""
+    __tablename__ = "ngo_support_tiers"
+
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey("ngo_support_items.id"), nullable=False)
+    label = db.Column(db.String(50), nullable=False)              # '>50%', '40%-50%', '0%'
+    rate_reduction = db.Column(db.Float, nullable=False, default=0.0)  # fraction, e.g. 0.028 = 2.8%
     display_order = db.Column(db.Integer, default=0)
 # ---------------------------------------------------------------------------
 # Cost of Fund sheet

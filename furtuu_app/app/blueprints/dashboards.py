@@ -107,14 +107,14 @@ def edit_ngo_support(item_id):
     return redirect(request.referrer or url_for("dashboards.ngo_support", product_id=item.product_id))
 
 
-@dashboards_bp.route("/ngo-support/<int:item_id>/delete", methods=["POST"])
+@dashboards_bp.route("/ngo-support/<int:item_id>/select-tier", methods=["POST"])
 @login_required
-def delete_ngo_support(item_id):
-    from flask import redirect, url_for, flash
+def select_ngo_tier(item_id):
+    from flask import request, redirect, url_for, flash
     item = NGOSupportItem.query.get_or_404(item_id)
-    product_id = item.product_id
-    db.session.delete(item)
+    tier_id = request.form.get("tier_id", type=int)
+    item.selected_tier_id = tier_id if tier_id else None
     db.session.commit()
-    flash("NGO support item deleted.", "info")
-    return redirect(request.referrer or url_for("dashboards.ngo_support", product_id=product_id))
+    flash(f"{item.name} range updated.", "success")
+    return redirect(request.referrer or url_for("dashboards.ngo_support", product_id=item.product_id))
 
