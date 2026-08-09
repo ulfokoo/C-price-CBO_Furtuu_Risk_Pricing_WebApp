@@ -20,7 +20,6 @@
         <td>
           {% if item.tiers %}
             {{ item.selected_tier.label if item.selected_tier else "— not set —" }}
-            ({{ "%.1f%%"|format((item.selected_tier.rate_reduction if item.selected_tier else 0)*100) }})
           {% else %}
             {{ "%.2f%%"|format(item.percent*100) }}
           {% endif %}
