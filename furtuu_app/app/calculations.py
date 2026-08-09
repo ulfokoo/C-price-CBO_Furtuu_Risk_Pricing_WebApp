@@ -215,7 +215,6 @@ def compute_pricing(product):
     # Price Across Bankable Risk Grade table: same fixed target return / cost
     # of fund / tenure charge / op cost, varying credit risk premium (PD*LGD*EAD)
     ngo_reduction = ngo["effective_reduction_pct"]
-
     grade_rows = []
     for row in pd_transform["rows"]:
         g = row["grade"]
@@ -239,3 +238,5 @@ def compute_pricing(product):
             "interest_rate_annual_after_ngo": annual_after_ngo,
             "interest_rate_tenor_after_ngo": tenor_after_ngo,
         })
+
+    return {"main": main_scenario, "grade_rows": grade_rows}
