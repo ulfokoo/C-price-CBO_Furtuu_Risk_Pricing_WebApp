@@ -73,7 +73,7 @@
           </form>
         </div>
 
-        <form method="POST" action="{{ url_for('admin.edit_feature_values_bulk', feature_id=f.id) }}" class="d-flex flex-wrap gap-2 align-items-center mb-1">
+        <form method="POST" action="{{ url_for('admin.edit_feature_values_bulk', feature_id=f.id) }}" class="d-flex flex-column gap-1 mb-1" style="width:fit-content;">
         {% for v in f.values %}
           <span class="d-flex gap-1 align-items-center border rounded p-1 bg-white">
             <button type="submit" formaction="{{ url_for('admin.delete_feature_value', value_id=v.id) }}" formnovalidate class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this value?');">✕</button>
@@ -83,7 +83,7 @@
           <span class="text-muted small">No values yet.</span>
         {% endfor %}
         {% if f.values %}
-          <button type="submit" class="btn btn-sm btn-outline-primary">✓ Save</button>
+          <button type="submit" class="btn btn-sm btn-outline-primary align-self-start">✓ Save</button>
         {% endif %}
         </form>
 
