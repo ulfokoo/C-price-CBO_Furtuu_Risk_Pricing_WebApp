@@ -1119,6 +1119,18 @@ def add_feature_value(feature_id):
     return redirect(url_for("admin.eligibility_admin", product_id=f.product_id))
 
 
+@admin_bp.route("/feature-values/<int:value_id>/edit", methods=["POST"])
+@login_required
+@admin_required
+def edit_feature_value(value_id):
+    v = ProductFeatureValue.query.get_or_404(value_id)
+    value = request.form.get("value", "").strip()
+    if value:
+        v.value = value
+        db.session.commit()
+    return redirect(url_for("admin.eligibility_admin", product_id=v.feature.product_id))
+
+
 @admin_bp.route("/feature-values/<int:value_id>/delete", methods=["POST"])
 @login_required
 @admin_required
