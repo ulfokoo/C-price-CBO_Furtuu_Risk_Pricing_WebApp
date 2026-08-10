@@ -882,7 +882,11 @@ def delete_projection(scenario_id):
     name = sc.crop_name
     db.session.delete(sc)
     db.session.commit()
-    @admin_bp.route("/projection/<int:scenario_id>/extra-field/add", methods=["POST"])
+    flash(f"Projection '{name}' deleted.", "success")
+    return redirect(url_for("admin.projection_admin", product_id=product_id))
+
+
+@admin_bp.route("/projection/<int:scenario_id>/extra-field/add", methods=["POST"])
 @login_required
 @admin_required
 def add_projection_extra_field(scenario_id):
