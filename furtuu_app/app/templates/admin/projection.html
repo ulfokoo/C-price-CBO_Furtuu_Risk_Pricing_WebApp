@@ -7,6 +7,23 @@
 </div>
 <p class="text-muted">Add one card per crop / segment (Wheat, Barley, ...). Inputs are the same as the "Profit or Return" workbook — number of farmers, ticket size, tenure, and rates — outputs (Portfolio, Interest Income, Profit, ROA) are calculated automatically.</p>
 
+<div class="card mb-3">
+  <div class="card-header cbo">Field Labels — edit any time, no code changes needed</div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('admin.edit_projection_labels', product_id=product.id) }}" class="row g-2">
+      {% for key, default in label_fields.items() %}
+      <div class="col-md-3">
+        <label class="form-label small text-muted">{{ default }}</label>
+        <input class="form-control form-control-sm" name="{{ key }}" value="{{ product.get_field_label(key, default) }}">
+      </div>
+      {% endfor %}
+      <div class="col-12 d-flex justify-content-end mt-2">
+        <button type="submit" class="btn btn-sm btn-success">Save Labels</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% for row in result.rows %}
 {% set sc = row.scenario %}
 <div class="card mb-3">
@@ -19,63 +36,63 @@
   <div class="card-body">
     <form id="editform-{{ sc.id }}" method="POST" action="{{ url_for('admin.edit_projection', scenario_id=sc.id) }}" class="row g-2">
       <div class="col-md-3">
-        <label class="form-label small">Crop / Segment Name</label>
+        <label class="form-label small">{{ product.get_field_label('crop_name', 'Crop / Segment Name') }}</label>
         <input class="form-control form-control-sm" name="crop_name" value="{{ sc.crop_name }}" required>
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Year Label</label>
+        <label class="form-label small">{{ product.get_field_label('year_label', 'Year Label') }}</label>
         <input class="form-control form-control-sm" name="year_label" value="{{ sc.year_label }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Number of Farmers</label>
+        <label class="form-label small">{{ product.get_field_label('number_of_farmers', 'Number of Farmers') }}</label>
         <input class="form-control form-control-sm" type="number" step="1" name="number_of_farmers" value="{{ sc.number_of_farmers }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Ticket Size (ETB)</label>
+        <label class="form-label small">{{ product.get_field_label('ticket_size', 'Ticket Size (ETB)') }}</label>
         <input class="form-control form-control-sm" type="number" step="0.01" name="ticket_size" value="{{ sc.ticket_size }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Loan Tenure (months)</label>
+        <label class="form-label small">{{ product.get_field_label('loan_tenure_months', 'Loan Tenure (months)') }}</label>
         <input class="form-control form-control-sm" type="number" step="0.1" name="loan_tenure_months" value="{{ sc.loan_tenure_months }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Monthly Interest Rate %</label>
+        <label class="form-label small">{{ product.get_field_label('monthly_interest_rate', 'Monthly Interest Rate %') }}</label>
         <input class="form-control form-control-sm" type="number" step="0.0001" name="monthly_interest_rate" value="{{ "%.4f"|format(sc.monthly_interest_rate*100) }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Annual Cost of Fund %</label>
+        <label class="form-label small">{{ product.get_field_label('annual_cost_of_fund_pct', 'Annual Cost of Fund %') }}</label>
         <input class="form-control form-control-sm" type="number" step="0.01" name="annual_cost_of_fund_pct" value="{{ "%.2f"|format(sc.annual_cost_of_fund_pct*100) }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Cost of LMD % of Portfolio</label>
+        <label class="form-label small">{{ product.get_field_label('cost_of_lmd_pct', 'Cost of LMD % of Portfolio') }}</label>
         <input class="form-control form-control-sm" type="number" step="0.0001" name="cost_of_lmd_pct" value="{{ "%.4f"|format(sc.cost_of_lmd_pct*100) }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Misc Cost % of Interest Income</label>
+        <label class="form-label small">{{ product.get_field_label('misc_cost_pct', 'Misc Cost % of Interest Income') }}</label>
         <input class="form-control form-control-sm" type="number" step="0.01" name="misc_cost_pct" value="{{ "%.2f"|format(sc.misc_cost_pct*100) }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Access Fee % of Portfolio</label>
+        <label class="form-label small">{{ product.get_field_label('access_fee_pct', 'Access Fee % of Portfolio') }}</label>
         <input class="form-control form-control-sm" type="number" step="0.01" name="access_fee_pct" value="{{ "%.2f"|format(sc.access_fee_pct*100) }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">RMS Fee % of Portfolio</label>
+        <label class="form-label small">{{ product.get_field_label('rms_fee_pct', 'RMS Fee % of Portfolio') }}</label>
         <input class="form-control form-control-sm" type="number" step="0.01" name="rms_fee_pct" value="{{ "%.2f"|format(sc.rms_fee_pct*100) }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Disaster Risk % (info only)</label>
+        <label class="form-label small">{{ product.get_field_label('disaster_risk_pct', 'Disaster Risk % (info only)') }}</label>
         <input class="form-control form-control-sm" type="number" step="0.0001" name="disaster_risk_pct" value="{{ "%.4f"|format(sc.disaster_risk_pct*100) }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Income Tax %</label>
+        <label class="form-label small">{{ product.get_field_label('income_tax_pct', 'Income Tax %') }}</label>
         <input class="form-control form-control-sm" type="number" step="0.01" name="income_tax_pct" value="{{ "%.2f"|format(sc.income_tax_pct*100) }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Provision % of PAT</label>
+        <label class="form-label small">{{ product.get_field_label('provision_pct', 'Provision % of PAT') }}</label>
         <input class="form-control form-control-sm" type="number" step="0.01" name="provision_pct" value="{{ "%.2f"|format(sc.provision_pct*100) }}">
       </div>
       <div class="col-md-2">
-        <label class="form-label small">Provision by Status %</label>
+        <label class="form-label small">{{ product.get_field_label('provision_status_pct', 'Provision by Status %') }}</label>
         <input class="form-control form-control-sm" type="number" step="0.01" name="provision_status_pct" value="{{ "%.2f"|format(sc.provision_status_pct*100) }}">
       </div>
     </form>
@@ -127,12 +144,12 @@
 
     <table class="table table-sm mt-3 mb-0">
       <tbody>
-        <tr><td>Portfolio</td><td class="text-end">{{ "{:,.2f}".format(row.portfolio) }}</td></tr>
-        <tr><td>Interest Income</td><td class="text-end">{{ "{:,.2f}".format(row.interest_income) }}</td></tr>
-        <tr><td>Profit before Tax</td><td class="text-end">{{ "{:,.2f}".format(row.profit_before_tax) }}</td></tr>
-        <tr><td>Profit after Tax</td><td class="text-end">{{ "{:,.2f}".format(row.profit_after_tax) }}</td></tr>
-        <tr class="fw-bold table-success"><td>Net Profit</td><td class="text-end">{{ "{:,.2f}".format(row.net_profit) }}</td></tr>
-        <tr class="fw-bold"><td>ROA</td><td class="text-end">{{ "%.2f%%"|format(row.roa*100) }}</td></tr>
+        <tr><td>{{ product.get_field_label('portfolio', 'Portfolio') }}</td><td class="text-end">{{ "{:,.2f}".format(row.portfolio) }}</td></tr>
+        <tr><td>{{ product.get_field_label('interest_income', 'Interest Income') }}</td><td class="text-end">{{ "{:,.2f}".format(row.interest_income) }}</td></tr>
+        <tr><td>{{ product.get_field_label('profit_before_tax', 'Profit before Tax') }}</td><td class="text-end">{{ "{:,.2f}".format(row.profit_before_tax) }}</td></tr>
+        <tr><td>{{ product.get_field_label('profit_after_tax', 'Profit after Tax') }}</td><td class="text-end">{{ "{:,.2f}".format(row.profit_after_tax) }}</td></tr>
+        <tr class="fw-bold table-success"><td>{{ product.get_field_label('net_profit', 'Net Profit') }}</td><td class="text-end">{{ "{:,.2f}".format(row.net_profit) }}</td></tr>
+        <tr class="fw-bold"><td>{{ product.get_field_label('roa', 'ROA') }}</td><td class="text-end">{{ "%.2f%%"|format(row.roa*100) }}</td></tr>
       </tbody>
     </table>
   </div>

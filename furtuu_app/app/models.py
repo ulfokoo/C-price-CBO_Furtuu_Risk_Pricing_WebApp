@@ -43,6 +43,7 @@ class Product(db.Model):
     name = db.Column(db.String(120), nullable=False, unique=True)
     description = db.Column(db.String(500))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    field_labels_json = db.Column(db.Text, nullable=False, default="{}")
 
     categories = db.relationship("ScoreCategory", backref="product", cascade="all, delete-orphan",
                                   order_by="ScoreCategory.display_order")
@@ -81,6 +82,31 @@ class Product(db.Model):
 
     def total_category_weight(self):
         return sum(c.weight_pct() for c in self.categories)
+
+    def field_labels(self):
+        """Custom label overrides for this product, e.g. Projection field labels."""
+        import json
+        try:
+            return json.loads(self.field_labels_json or "{}")
+        except (ValueError, TypeError):
+            return {}
+
+    def get_field_label(self, key, default):
+        """Look up a custom label for `key`, falling back to `default` if unset."""
+        val = self.field_labels().get(key)
+        return val if val else default
+
+    def set_field_labels(self, updates):
+        """Merge `updates` (dict of key -> label text) into the stored labels."""
+        import json
+        labels = self.field_labels()
+        for key, value in updates.items():
+            value = (value or "").strip()
+            if value:
+                labels[key] = value
+            else:
+                labels.pop(key, None)
+        self.field_labels_json = json.dumps(labels)
 
 
 class ScoreCategory(db.Model):

@@ -767,6 +767,31 @@ _PROJECTION_PCT_FIELDS = [
 ]
 _PROJECTION_NUM_FIELDS = ["number_of_farmers", "ticket_size", "loan_tenure_months"]
 
+# Keys used for the editable Projection field labels, and their built-in defaults.
+PROJECTION_LABEL_FIELDS = {
+    "crop_name": "Crop / Segment Name",
+    "year_label": "Year Label",
+    "number_of_farmers": "Number of Farmers",
+    "ticket_size": "Ticket Size (ETB)",
+    "loan_tenure_months": "Loan Tenure (months)",
+    "monthly_interest_rate": "Monthly Interest Rate %",
+    "annual_cost_of_fund_pct": "Annual Cost of Fund %",
+    "cost_of_lmd_pct": "Cost of LMD % of Portfolio",
+    "misc_cost_pct": "Misc Cost % of Interest Income",
+    "access_fee_pct": "Access Fee % of Portfolio",
+    "rms_fee_pct": "RMS Fee % of Portfolio",
+    "disaster_risk_pct": "Disaster Risk % (info only)",
+    "income_tax_pct": "Income Tax %",
+    "provision_pct": "Provision % of PAT",
+    "provision_status_pct": "Provision by Status %",
+    "portfolio": "Portfolio",
+    "interest_income": "Interest Income",
+    "profit_before_tax": "Profit before Tax",
+    "profit_after_tax": "Profit after Tax",
+    "net_profit": "Net Profit",
+    "roa": "ROA",
+}
+
 
 @admin_bp.route("/products/projection/new", methods=["GET", "POST"])
 @login_required
@@ -808,7 +833,20 @@ def new_projection():
 def projection_admin(product_id):
     product = Product.query.get_or_404(product_id)
     result = calc.compute_projection_summary(product)
-    return render_template("admin/projection.html", product=product, result=result)
+    return render_template("admin/projection.html", product=product, result=result,
+                            label_fields=PROJECTION_LABEL_FIELDS)
+
+
+@admin_bp.route("/products/<int:product_id>/projection/labels", methods=["POST"])
+@login_required
+@admin_required
+def edit_projection_labels(product_id):
+    product = Product.query.get_or_404(product_id)
+    updates = {key: request.form.get(key, "") for key in PROJECTION_LABEL_FIELDS}
+    product.set_field_labels(updates)
+    db.session.commit()
+    flash("Projection labels updated.", "success")
+    return redirect(url_for("admin.projection_admin", product_id=product_id))
 
 
 
