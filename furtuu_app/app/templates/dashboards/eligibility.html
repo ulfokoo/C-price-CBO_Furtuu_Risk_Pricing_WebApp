@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block title %}{{ product.name }} — Eligibility{% endblock %}
 {% block content %}
-{% set active = 'eligibility' %}
-{% include "dashboards/_subnav.html" %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">{{ product.name }} <small class="text-muted fs-6">eligibility</small></h3>
+  <a href="{{ url_for('dashboards.eligibility_home') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> All Products</a>
+</div>
 
 <div class="d-flex justify-content-between align-items-center mb-2">
   <h5 class="mb-0">Eligibility & Product Features</h5>
