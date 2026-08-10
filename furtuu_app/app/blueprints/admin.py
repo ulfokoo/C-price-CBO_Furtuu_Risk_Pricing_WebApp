@@ -1018,6 +1018,21 @@ def edit_eligibility(criterion_id):
     return redirect(url_for("admin.eligibility_admin", product_id=c.product_id))
 
 
+
+@admin_bp.route("/products/<int:product_id>/eligibility/reorder", methods=["POST"])
+@login_required
+@admin_required
+def reorder_eligibility(product_id):
+    data = request.get_json(silent=True) or {}
+    ordered_ids = data.get("order", [])
+    for index, criterion_id in enumerate(ordered_ids):
+        c = EligibilityCriterion.query.get(criterion_id)
+        if c and c.product_id == product_id:
+            c.display_order = index
+    db.session.commit()
+    return jsonify({"status": "ok"})
+
+
 @admin_bp.route("/eligibility/<int:criterion_id>/delete", methods=["POST"])
 @login_required
 @admin_required

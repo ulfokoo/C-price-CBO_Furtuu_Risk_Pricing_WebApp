@@ -9,8 +9,16 @@
 <div class="card mb-3">
   <div class="card-header cbo">Eligibility Criteria — who qualifies</div>
   <div class="card-body">
+    {% if product.eligibility_criteria %}
+    <p class="text-muted small mb-2"><i class="bi bi-arrows-move"></i> Drag the handle to reorder criteria.</p>
+    {% endif %}
+    <div id="eligibility-list">
     {% for c in product.eligibility_criteria %}
-    <form method="POST" action="{{ url_for('admin.edit_eligibility', criterion_id=c.id) }}" class="d-flex gap-2 align-items-center mb-2">
+    <form method="POST" action="{{ url_for('admin.edit_eligibility', criterion_id=c.id) }}"
+          class="d-flex gap-2 align-items-center mb-2 eligibility-row" draggable="true" data-id="{{ c.id }}">
+      <span class="drag-handle" style="cursor:grab; user-select:none; padding:0 4px;" title="Drag to reorder">
+        <i class="bi bi-grip-vertical"></i>
+      </span>
       <input class="form-control form-control-sm" name="criterion" value="{{ c.criterion }}" style="max-width:260px">
       <input class="form-control form-control-sm" name="requirement" value="{{ c.requirement }}" style="max-width:260px">
       <div class="form-check form-check-inline">
@@ -23,6 +31,7 @@
     {% else %}
     <p class="text-muted">No eligibility criteria yet.</p>
     {% endfor %}
+    </div>
 
     <form method="POST" action="{{ url_for('admin.add_eligibility', product_id=product.id) }}" class="d-flex gap-2 align-items-center mt-3">
       <input class="form-control form-control-sm" name="criterion" placeholder="e.g. Minimum farm size" style="max-width:260px" required>
@@ -57,4 +66,44 @@
     </form>
   </div>
 </div>
+
+<script>
+(function () {
+  const list = document.getElementById('eligibility-list');
+  if (!list) return;
+  let dragEl = null;
+
+  list.addEventListener('dragstart', (e) => {
+    const row = e.target.closest('.eligibility-row');
+    if (!row) return;
+    dragEl = row;
+    e.dataTransfer.effectAllowed = 'move';
+    row.style.opacity = '0.5';
+  });
+
+  list.addEventListener('dragend', (e) => {
+    const row = e.target.closest('.eligibility-row');
+    if (row) row.style.opacity = '';
+    saveOrder();
+  });
+
+  list.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const row = e.target.closest('.eligibility-row');
+    if (!row || row === dragEl) return;
+    const rect = row.getBoundingClientRect();
+    const after = (e.clientY - rect.top) > (rect.height / 2);
+    list.insertBefore(dragEl, after ? row.nextSibling : row);
+  });
+
+  function saveOrder() {
+    const ids = Array.from(list.querySelectorAll('.eligibility-row')).map(r => r.dataset.id);
+    fetch("{{ url_for('admin.reorder_eligibility', product_id=product.id) }}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order: ids })
+    });
+  }
+})();
+</script>
 {% endblock %}
