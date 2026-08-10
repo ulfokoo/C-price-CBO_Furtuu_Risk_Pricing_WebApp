@@ -25,10 +25,9 @@
         <tr><td>Repayment/Tenure Charge ({{ m.tenure_label }})</td><td>{{ "%.3f%%"|format(m.tenure_rate*100) }}</td><td>{{ "{:,.2f}".format(m.tenure_charge_etb) }}</td></tr>
         <tr><td>Interest Rate (Annual) before NGO Support</td><td>{{ "%.3f%%"|format(m.interest_rate_annual_before_ngo*100) }}</td><td>{{ "{:,.2f}".format(m.interest_rate_annual_before_ngo * m.loan_amount) }}</td></tr>
         <tr class="table-info"><td>Less: NGO Support ({{ "%.0f%%"|format(m.ngo_total_pct*100) }} allocated)</td><td>-{{ "%.3f%%"|format(m.ngo_effective_reduction_pct*100) }}</td><td>-{{ "{:,.2f}".format(m.ngo_effective_reduction_pct * m.loan_amount) }}</td></tr>
-        <tr class="table-success fw-bold"><td>Interest Rate (Annual) — NGO-Adjusted</td><td>{{ "%.3f%%"|format(m.interest_rate_annual*100) }}</td><td>{{ "{:,.2f}".format(m.interest_rate_annual_etb) }}</td></tr>
-        <tr><td>Less: Expected Access Fee</td><td>{{ "%.3f%%"|format(m.access_fee_pct*100) }}</td><td>-{{ "{:,.2f}".format(m.access_fee_etb) }}</td></tr>
-        <tr class="table-warning fw-bold"><td>Required Interest Rate on the Loan</td><td>{{ "%.3f%%"|format(m.required_rate*100) }}</td><td>{{ "{:,.2f}".format(m.required_rate_etb) }}</td></tr>
-      </tbody>
+        <!-- NEW -->
+        <tr class="table-success fw-bold"><td>Interest Rate (Annual)</td><td>{{ "%.3f%%"|format(m.interest_rate_annual*100) }}</td><td>{{ "{:,.2f}".format(m.interest_rate_annual_etb) }}</td></tr>
+        <tr class="table-warning fw-bold"><td>Required Interest Rate on the Loan</td><td>{{ "%.3f%%"|format(m.interest_rate_annual*100) }}</td><td>{{ "{:,.2f}".format(m.interest_rate_annual_etb) }}</td></tr>
     </table>
   </div>
 </div>
