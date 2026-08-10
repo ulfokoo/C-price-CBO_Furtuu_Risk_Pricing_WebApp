@@ -62,20 +62,40 @@
       </div>
 
       {% for f in cat.features %}
-      <form method="POST" action="{{ url_for('admin.edit_feature', feature_id=f.id) }}" class="d-flex gap-2 align-items-center mb-2 ms-3">
-        <input class="form-control form-control-sm" name="feature" value="{{ f.feature }}" style="max-width:240px">
-        <input class="form-control form-control-sm" name="value" value="{{ f.value }}" style="max-width:240px">
-        <button class="btn btn-sm btn-outline-primary">Save</button>
-        <button type="submit" formaction="{{ url_for('admin.delete_feature', feature_id=f.id) }}" formnovalidate class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this feature?');">Delete</button>
-      </form>
+      <div class="ms-3 mb-3 p-2 border-start border-2">
+        <div class="d-flex gap-2 align-items-center mb-1">
+          <form method="POST" action="{{ url_for('admin.edit_feature', feature_id=f.id) }}" class="d-flex gap-2 align-items-center">
+            <input class="form-control form-control-sm" name="feature" value="{{ f.feature }}" style="max-width:200px">
+            <button class="btn btn-sm btn-outline-primary">Save Name</button>
+          </form>
+          <form method="POST" action="{{ url_for('admin.delete_feature', feature_id=f.id) }}" onsubmit="return confirm('Delete this feature and all its values?');">
+            <button class="btn btn-sm btn-outline-danger">Delete Feature</button>
+          </form>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mb-1">
+          {% for v in f.values %}
+          <form method="POST" action="{{ url_for('admin.delete_feature_value', value_id=v.id) }}" class="d-flex align-items-center gap-1">
+            <span class="badge bg-light text-dark border">{{ v.value }}</span>
+            <button class="btn btn-sm btn-outline-danger py-0 px-1" style="font-size:0.7rem;" title="Remove value">x</button>
+          </form>
+          {% else %}
+          <span class="text-muted small">No values yet.</span>
+          {% endfor %}
+        </div>
+
+        <form method="POST" action="{{ url_for('admin.add_feature_value', feature_id=f.id) }}" class="d-flex gap-2 align-items-center">
+          <input class="form-control form-control-sm" name="value" placeholder="e.g. Solar systems" style="max-width:240px" required>
+          <button class="btn btn-sm btn-success">Add</button>
+        </form>
+      </div>
       {% else %}
       <p class="text-muted ms-3">No features in this category yet.</p>
       {% endfor %}
 
       <form method="POST" action="{{ url_for('admin.add_feature', product_id=product.id) }}" class="d-flex gap-2 align-items-center mt-2 ms-3">
         <input type="hidden" name="category_id" value="{{ cat.id }}">
-        <input class="form-control form-control-sm" name="feature" placeholder="e.g. Loan Tenure" style="max-width:240px" required>
-        <input class="form-control form-control-sm" name="value" placeholder="e.g. 4 - 12 months" style="max-width:240px" required>
+        <input class="form-control form-control-sm" name="feature" placeholder="e.g. Loan Purpose" style="max-width:240px" required>
         <button class="btn btn-sm btn-success">Add Feature</button>
       </form>
     </div>

@@ -46,6 +46,14 @@ def create_app():
             db.session.commit()
         except Exception:
             db.session.rollback()
+        try:
+            from app.models import ProductFeature, ProductFeatureValue
+            for f in ProductFeature.query.all():
+                if f.value and not f.values:
+                    db.session.add(ProductFeatureValue(feature_id=f.id, value=f.value, display_order=1))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
         from app.seed import ensure_default_admin
         ensure_default_admin()
 

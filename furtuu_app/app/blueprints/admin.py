@@ -9,7 +9,7 @@ from app.models import (
     Product, ScoreCategory, SubParameter, ScoringOption, PricingInput,
     CostOfFundSource, RWAOption, RepaymentSchedule, OperationalCostComponent, PDGrade,
     NGOSupportItem, NGOSupportTier, ProjectionScenario, ProjectionExtraField,
-    EligibilityCriterion, ProductFeature, ProductFeatureCategory,
+    EligibilityCriterion, ProductFeature, ProductFeatureCategory, ProductFeatureValue,
 )
 from app import calculations as calc
 
@@ -1092,16 +1092,42 @@ def delete_feature_category(category_id):
 def add_feature(product_id):
     product = Product.query.get_or_404(product_id)
     feature = request.form.get("feature", "").strip()
-    value = request.form.get("value", "").strip()
     category_id = request.form.get("category_id", "").strip()
-    if feature and value:
+    if feature:
         db.session.add(ProductFeature(
-            product_id=product.id, feature=feature, value=value,
+            product_id=product.id, feature=feature, value="",
             category_id=int(category_id) if category_id else None,
             display_order=len(product.product_features) + 1,
         ))
         db.session.commit()
         flash(f"Feature '{feature}' added.", "success")
+    return redirect(url_for("admin.eligibility_admin", product_id=product_id))
+
+
+@admin_bp.route("/features/<int:feature_id>/values/add", methods=["POST"])
+@login_required
+@admin_required
+def add_feature_value(feature_id):
+    f = ProductFeature.query.get_or_404(feature_id)
+    value = request.form.get("value", "").strip()
+    if value:
+        db.session.add(ProductFeatureValue(
+            feature_id=f.id, value=value,
+            display_order=len(f.values) + 1,
+        ))
+        db.session.commit()
+    return redirect(url_for("admin.eligibility_admin", product_id=f.product_id))
+
+
+@admin_bp.route("/feature-values/<int:value_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_feature_value(value_id):
+    v = ProductFeatureValue.query.get_or_404(value_id)
+    f = v.feature
+    product_id = f.product_id
+    db.session.delete(v)
+    db.session.commit()
     return redirect(url_for("admin.eligibility_admin", product_id=product_id))
 
 

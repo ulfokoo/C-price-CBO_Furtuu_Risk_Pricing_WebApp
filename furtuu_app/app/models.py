@@ -382,5 +382,19 @@ class ProductFeature(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey("product_feature_categories.id"), nullable=True)
     feature = db.Column(db.String(200), nullable=False)
+    value = db.Column(db.String(300), nullable=True, default="")
+    display_order = db.Column(db.Integer, default=0)
+
+    values = db.relationship("ProductFeatureValue", backref="feature",
+                              cascade="all, delete-orphan",
+                              order_by="ProductFeatureValue.display_order")
+
+
+class ProductFeatureValue(db.Model):
+    """One value entry under a feature, e.g. Loan Purpose -> 'Solar systems'."""
+    __tablename__ = "product_feature_values"
+
+    id = db.Column(db.Integer, primary_key=True)
+    feature_id = db.Column(db.Integer, db.ForeignKey("product_features.id"), nullable=False)
     value = db.Column(db.String(300), nullable=False)
     display_order = db.Column(db.Integer, default=0)
