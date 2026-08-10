@@ -948,13 +948,25 @@ def new_eligibility():
 
     if request.method == "POST":
         product_id = request.form.get("product_id", type=int)
-        criterion = request.form.get("criterion", "").strip()
-        requirement = request.form.get("requirement", "").strip()
+        clone_from_id = request.form.get("clone_from_id", type=int)
 
         product = Product.query.get(product_id)
         if not product:
             flash("Please choose a valid product.", "danger")
             return redirect(url_for("admin.new_eligibility"))
+
+        if clone_from_id:
+            source = Product.query.get(clone_from_id)
+            if not source or source.id == product.id:
+                flash("Please choose a valid product to clone from.", "danger")
+                return redirect(url_for("admin.new_eligibility"))
+            _clone_eligibility_structure(source, product)
+            db.session.commit()
+            flash(f"Cloned eligibility & product features from '{source.name}' into '{product.name}'.", "success")
+            return redirect(url_for("admin.eligibility_admin", product_id=product.id))
+
+        criterion = request.form.get("criterion", "").strip()
+        requirement = request.form.get("requirement", "").strip()
         if not criterion or not requirement:
             flash("Criterion and requirement are both required.", "danger")
             return redirect(url_for("admin.new_eligibility"))
@@ -982,19 +994,8 @@ def eligibility_admin(product_id):
     return render_template("admin/eligibility.html", product=product, other_products=other_products)
 
 
-@admin_bp.route("/products/<int:product_id>/eligibility/clone", methods=["POST"])
-@login_required
-@admin_required
-def clone_eligibility(product_id):
-    product = Product.query.get_or_404(product_id)
-    source_id = request.form.get("source_product_id", type=int)
-    source = Product.query.get(source_id)
-
-    if not source or source.id == product.id:
-        flash("Please choose a valid product to clone from.", "danger")
-        return redirect(url_for("admin.eligibility_admin", product_id=product.id))
-
-    # Clone eligibility criteria
+def _clone_eligibility_structure(source, product):
+    """Deep-copy eligibility criteria + feature categories/features/values from source into product."""
     for c in source.eligibility_criteria:
         db.session.add(EligibilityCriterion(
             product_id=product.id,
@@ -1004,7 +1005,6 @@ def clone_eligibility(product_id):
             display_order=c.display_order,
         ))
 
-    # Clone feature categories -> features -> values
     for cat in source.feature_categories:
         new_cat = ProductFeatureCategory(
             product_id=product.id, name=cat.name, display_order=cat.display_order,
@@ -1024,7 +1024,6 @@ def clone_eligibility(product_id):
                     feature_id=new_f.id, value=v.value, display_order=v.display_order,
                 ))
 
-    # Clone uncategorized features too
     for f in source.product_features:
         if f.category_id is None:
             new_f = ProductFeature(
@@ -1038,6 +1037,20 @@ def clone_eligibility(product_id):
                     feature_id=new_f.id, value=v.value, display_order=v.display_order,
                 ))
 
+
+@admin_bp.route("/products/<int:product_id>/eligibility/clone", methods=["POST"])
+@login_required
+@admin_required
+def clone_eligibility(product_id):
+    product = Product.query.get_or_404(product_id)
+    source_id = request.form.get("source_product_id", type=int)
+    source = Product.query.get(source_id)
+
+    if not source or source.id == product.id:
+        flash("Please choose a valid product to clone from.", "danger")
+        return redirect(url_for("admin.eligibility_admin", product_id=product.id))
+
+    _clone_eligibility_structure(source, product)
     db.session.commit()
     flash(f"Cloned eligibility & product features from '{source.name}' into '{product.name}'.", "success")
     return redirect(url_for("admin.eligibility_admin", product_id=product.id))

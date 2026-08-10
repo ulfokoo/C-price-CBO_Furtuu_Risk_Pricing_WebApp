@@ -16,20 +16,56 @@
           {% endfor %}
         </select>
       </div>
+
       <div class="mb-3">
-        <label class="form-label">Criterion</label>
-        <input class="form-control" name="criterion" required placeholder="e.g. Business age">
+        <label class="form-label">Starting Point</label>
+        <select class="form-select" name="clone_from_id" id="cloneFromSelect">
+          <option value="">Add a single criterion manually</option>
+          {% for p in products %}
+            <option value="{{ p.id }}">Clone everything from "{{ p.name }}" (recommended — then edit values)</option>
+          {% endfor %}
+        </select>
+        <div class="form-text">Cloning copies all eligibility criteria and product features from that product so you can just tweak the values instead of starting from zero.</div>
       </div>
-      <div class="mb-3">
-        <label class="form-label">Requirement</label>
-        <input class="form-control" name="requirement" required placeholder="e.g. At least 1 year in operation">
+
+      <div id="manualFields">
+        <div class="mb-3">
+          <label class="form-label">Criterion</label>
+          <input class="form-control" name="criterion" placeholder="e.g. Business age">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Requirement</label>
+          <input class="form-control" name="requirement" placeholder="e.g. At least 1 year in operation">
+        </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" name="is_mandatory" id="isMandatory" checked>
+          <label class="form-check-label" for="isMandatory">Mandatory</label>
+        </div>
       </div>
-      <div class="form-check mb-3">
-        <input class="form-check-input" type="checkbox" name="is_mandatory" id="isMandatory" checked>
-        <label class="form-check-label" for="isMandatory">Mandatory</label>
-      </div>
-      <button class="btn btn-success">Create Criterion</button>
+
+      <button class="btn btn-success" id="submitBtn">Create Criterion</button>
     </form>
   </div>
 </div>
+
+<script>
+(function () {
+  const select = document.getElementById('cloneFromSelect');
+  const manualFields = document.getElementById('manualFields');
+  const criterionInput = manualFields.querySelector('[name="criterion"]');
+  const requirementInput = manualFields.querySelector('[name="requirement"]');
+  const submitBtn = document.getElementById('submitBtn');
+
+  function toggle() {
+    const cloning = !!select.value;
+    manualFields.style.display = cloning ? 'none' : '';
+    criterionInput.required = !cloning;
+    requirementInput.required = !cloning;
+    submitBtn.textContent = cloning ? 'Clone Eligibility & Features' : 'Create Criterion';
+  }
+
+  select.addEventListener('change', toggle);
+  toggle();
+})();
+</script>
 {% endblock %}
