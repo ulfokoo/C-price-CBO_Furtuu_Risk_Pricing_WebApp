@@ -38,10 +38,6 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Admin</a>
           <ul class="dropdown-menu dropdown-menu-end">
-            {% if product is defined and product %}
-            <li><a class="dropdown-item text-danger" href="{{ url_for('admin.edit_product', product_id=product.id) }}"><i class="bi bi-tools me-1"></i>Admin Edit — {{ product.name }}</a></li>
-            <li><hr class="dropdown-divider"></li>
-            {% endif %}
             <li><a class="dropdown-item" href="{{ url_for('admin.products') }}"><i class="bi bi-diagram-3 me-1"></i>Products / Value Chains</a></li>
             <li><a class="dropdown-item" href="{{ url_for('admin.new_product') }}"><i class="bi bi-plus-circle me-1"></i>Add New Product</a></li>
             <li><hr class="dropdown-divider"></li>
