@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Add New Eligibility{% endblock %}
+{% block content %}
+<h3><i class="bi bi-plus-circle"></i> Add New Eligibility Criterion</h3>
+<p class="text-muted">Define who qualifies for a product. You can add more criteria and product features on the next page.</p>
+
+<div class="card" style="max-width:650px;">
+  <div class="card-body">
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label">Product / Value Chain</label>
+        <select class="form-select" name="product_id" required>
+          <option value="" disabled selected>Choose a product...</option>
+          {% for p in products %}
+            <option value="{{ p.id }}">{{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Criterion</label>
+        <input class="form-control" name="criterion" required placeholder="e.g. Business age">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Requirement</label>
+        <input class="form-control" name="requirement" required placeholder="e.g. At least 1 year in operation">
+      </div>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="is_mandatory" id="isMandatory" checked>
+        <label class="form-check-label" for="isMandatory">Mandatory</label>
+      </div>
+      <button class="btn btn-success">Create Criterion</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -9,10 +9,5 @@
   <li class="nav-item"><a class="nav-link {{ 'active' if active=='pd' }}" href="{{ url_for('dashboards.pd_transformation', product_id=product.id) }}">PD Transformation</a></li>
   <li class="nav-item"><a class="nav-link {{ 'active' if active=='ref' }}" href="{{ url_for('dashboards.reference', product_id=product.id) }}">Reference Tables</a></li>
   <li class="nav-item"><a class="nav-link {{ 'active' if active=='ngo' }}" href="{{ url_for('dashboards.ngo_support', product_id=product.id) }}">NGO Support</a></li>
-  <li class="nav-item"><a class="nav-link {{ 'active' if active=='projection' }}" href="{{ url_for('dashboards.projection', product_id=product.id) }}">Projection</a></li>
-  {% if current_user.is_admin %}
-  <li class="nav-item"><a class="nav-link text-danger" href="{{ url_for('admin.edit_product', product_id=product.id) }}"><i class="bi bi-tools"></i> Admin Edit</a></li>
-  {% endif %}
-  <li class="nav-item"><a class="nav-link {{ 'active' if active=='eligibility' }}" href="{{ url_for('dashboards.eligibility', product_id=product.id) }}">Eligibility</a></li>
   <li class="nav-item"><a class="nav-link" href="{{ url_for('input.input_dashboard', product_id=product.id) }}"><i class="bi bi-pencil-square"></i> Input Dashboard</a></li>
 </ul>

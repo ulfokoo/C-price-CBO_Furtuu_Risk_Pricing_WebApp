@@ -2,16 +2,51 @@
 {% block title %}Eligibility{% endblock %}
 {% block content %}
 <h3 class="mb-3"><i class="bi bi-check2-square"></i> Eligibility</h3>
-<p class="text-muted">Pick a product to see its eligibility criteria and product features.</p>
+<p class="text-muted">Each product below has its own eligibility criteria and product features. Editing one product's eligibility never changes another.</p>
 
-<div class="list-group">
+<div class="row g-3">
 {% for p in products %}
-  <a href="{{ url_for('dashboards.eligibility', product_id=p.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-    <span><strong>{{ p.name }}</strong> <span class="text-muted small">{{ p.description or "" }}</span></span>
-    <span class="text-muted small">{{ p.eligibility_criteria|length }} criteria, {{ p.product_features|length }} feature(s) <i class="bi bi-chevron-right"></i></span>
-  </a>
+  <div class="col-md-4">
+    <div class="card product-card shadow-sm h-100">
+      <div class="card-header cbo d-flex justify-content-between align-items-center">
+        <strong>{{ p.name }}</strong>
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('admin.eligibility_admin', product_id=p.id) }}" class="text-white" title="Manage in Admin"><i class="bi bi-gear"></i></a>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <p class="text-muted small">{{ p.description or "No description yet." }}</p>
+        <div class="list-group list-group-flush">
+        {% for c in p.eligibility_criteria %}
+          <span class="list-group-item"><i class="bi bi-check2-square me-1"></i> {{ c.criterion }}</span>
+        {% else %}
+          <span class="list-group-item text-muted">No eligibility criteria added yet.</span>
+        {% endfor %}
+        </div>
+      </div>
+      <div class="card-footer bg-white">
+        <a href="{{ url_for('dashboards.eligibility', product_id=p.id) }}" class="btn btn-success btn-sm w-100">
+          <i class="bi bi-check2-square"></i> Open Eligibility Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
 {% else %}
   <p class="text-muted">No products yet.</p>
 {% endfor %}
+
+{% if current_user.is_admin %}
+  <div class="col-md-4">
+    <a href="{{ url_for('admin.new_eligibility') }}" class="text-decoration-none">
+      <div class="card h-100 border-dashed d-flex align-items-center justify-content-center text-center" style="border:2px dashed #ccc; min-height:220px;">
+        <div>
+          <i class="bi bi-plus-circle fs-1 text-success"></i>
+          <p class="mt-2 mb-0 fw-bold">Add New Eligibility</p>
+          <p class="text-muted small">e.g. Business age, Collateral...</p>
+        </div>
+      </div>
+    </a>
+  </div>
+{% endif %}
 </div>
 {% endblock %}

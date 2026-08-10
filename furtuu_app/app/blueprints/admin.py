@@ -766,6 +766,39 @@ _PROJECTION_PCT_FIELDS = [
 _PROJECTION_NUM_FIELDS = ["number_of_farmers", "ticket_size", "loan_tenure_months"]
 
 
+@admin_bp.route("/products/projection/new", methods=["GET", "POST"])
+@login_required
+@admin_required
+def new_projection():
+    products = Product.query.order_by(Product.name).all()
+
+    if request.method == "POST":
+        product_id = request.form.get("product_id", type=int)
+        crop_name = request.form.get("crop_name", "").strip()
+        year_label = request.form.get("year_label", "Y1").strip() or "Y1"
+
+        product = Product.query.get(product_id)
+        if not product:
+            flash("Please choose a valid product.", "danger")
+            return redirect(url_for("admin.new_projection"))
+        if not crop_name:
+            flash("Crop / segment name is required.", "danger")
+            return redirect(url_for("admin.new_projection"))
+
+        sc = ProjectionScenario(
+            product_id=product.id,
+            crop_name=crop_name,
+            year_label=year_label,
+            display_order=len(product.projection_scenarios) + 1,
+        )
+        db.session.add(sc)
+        db.session.commit()
+        flash(f"Projection '{crop_name}' created.", "success")
+        return redirect(url_for("admin.projection_admin", product_id=product.id))
+
+    return render_template("admin/new_projection.html", products=products)
+
+
 @admin_bp.route("/products/<int:product_id>/projection")
 @login_required
 @admin_required
@@ -841,6 +874,38 @@ def delete_projection(scenario_id):
     flash(f"Projection '{name}' deleted.", "info")
     return redirect(url_for("admin.projection_admin", product_id=product_id))
 
+
+
+
+@admin_bp.route("/products/eligibility/new", methods=["GET", "POST"])
+@login_required
+@admin_required
+def new_eligibility():
+    products = Product.query.order_by(Product.name).all()
+
+    if request.method == "POST":
+        product_id = request.form.get("product_id", type=int)
+        criterion = request.form.get("criterion", "").strip()
+        requirement = request.form.get("requirement", "").strip()
+
+        product = Product.query.get(product_id)
+        if not product:
+            flash("Please choose a valid product.", "danger")
+            return redirect(url_for("admin.new_eligibility"))
+        if not criterion or not requirement:
+            flash("Criterion and requirement are both required.", "danger")
+            return redirect(url_for("admin.new_eligibility"))
+
+        db.session.add(EligibilityCriterion(
+            product_id=product.id, criterion=criterion, requirement=requirement,
+            is_mandatory=bool(request.form.get("is_mandatory")),
+            display_order=len(product.eligibility_criteria) + 1,
+        ))
+        db.session.commit()
+        flash(f"Eligibility criterion '{criterion}' created.", "success")
+        return redirect(url_for("admin.eligibility_admin", product_id=product.id))
+
+    return render_template("admin/new_eligibility.html", products=products)
 
 # ---------------------------------------------------------------------------
 # Eligibility (criteria) + Product Features
