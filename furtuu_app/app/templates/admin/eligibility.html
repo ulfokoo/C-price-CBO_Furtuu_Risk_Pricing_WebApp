@@ -48,9 +48,14 @@
 <div class="card mb-3">
   <div class="card-header cbo">Product Feature Categories</div>
   <div class="card-body">
+    {% if product.feature_categories %}
+    <p class="text-muted small mb-2"><i class="bi bi-arrows-move"></i> Drag the handle to reorder categories, and features within a category.</p>
+    {% endif %}
+    <div id="category-list">
     {% for cat in product.feature_categories %}
-    <div class="border rounded p-2 mb-3">
-      <div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="border rounded p-2 mb-3 category-row" draggable="true" data-id="{{ cat.id }}">
+      <div class="d-flex align-items-center mb-2">
+        <span class="drag-handle" style="cursor:grab; user-select:none; padding:0 4px;" title="Drag to reorder"><i class="bi bi-grip-vertical"></i></span>
         <form method="POST" action="{{ url_for('admin.edit_feature_category', category_id=cat.id) }}" class="d-flex gap-2 align-items-center">
           <strong class="me-1">Category:</strong>
           <input class="form-control form-control-sm" name="name" value="{{ cat.name }}" style="max-width:260px">
@@ -61,9 +66,11 @@
         </form>
       </div>
 
+      <div class="feature-list" data-cat-id="{{ cat.id }}">
       {% for f in cat.features %}
-      <div class="ms-3 mb-3 p-2 border-start border-2">
+      <div class="ms-3 mb-3 p-2 border-start border-2 feature-row" draggable="true" data-id="{{ f.id }}">
         <div class="d-flex gap-2 align-items-center mb-1">
+          <span class="drag-handle" style="cursor:grab; user-select:none; padding:0 4px;" title="Drag to reorder"><i class="bi bi-grip-vertical"></i></span>
           <form method="POST" action="{{ url_for('admin.edit_feature', feature_id=f.id) }}" class="d-flex gap-2 align-items-center">
             <input class="form-control form-control-sm" name="feature" value="{{ f.feature }}" style="max-width:200px">
             <button class="btn btn-sm btn-outline-primary">Save Name</button>
@@ -95,6 +102,7 @@
       {% else %}
       <p class="text-muted ms-3">No features in this category yet.</p>
       {% endfor %}
+      </div>
 
       <form method="POST" action="{{ url_for('admin.add_feature', product_id=product.id) }}" class="d-flex gap-2 align-items-center mt-2 ms-3">
         <input type="hidden" name="category_id" value="{{ cat.id }}">
@@ -105,6 +113,7 @@
     {% else %}
     <p class="text-muted">No feature categories yet. Add one below.</p>
     {% endfor %}
+    </div>
 
     <form method="POST" action="{{ url_for('admin.add_feature_category', product_id=product.id) }}" class="d-flex gap-2 align-items-center mt-2">
       <input class="form-control form-control-sm" name="name" placeholder="e.g. Loan Terms" style="max-width:260px" required>
@@ -167,5 +176,53 @@
     });
   }
 })();
+
+function makeDraggable(containerSelector, rowClass, saveUrlFn) {
+  document.querySelectorAll(containerSelector).forEach(function (list) {
+    let dragEl = null;
+
+    list.addEventListener('dragstart', function (e) {
+      const row = e.target.closest('.' + rowClass);
+      if (!row || row.parentElement !== list) return;
+      dragEl = row;
+      e.dataTransfer.effectAllowed = 'move';
+      row.style.opacity = '0.5';
+      e.stopPropagation();
+    });
+
+    list.addEventListener('dragend', function (e) {
+      const row = e.target.closest('.' + rowClass);
+      if (row) row.style.opacity = '';
+      saveOrderFor(list);
+    });
+
+    list.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const row = e.target.closest('.' + rowClass);
+      if (!row || row === dragEl || row.parentElement !== list) return;
+      const rect = row.getBoundingClientRect();
+      const after = (e.clientY - rect.top) > (rect.height / 2);
+      list.insertBefore(dragEl, after ? row.nextSibling : row);
+    });
+
+    function saveOrderFor(container) {
+      const ids = Array.from(container.querySelectorAll(':scope > .' + rowClass)).map(r => r.dataset.id);
+      fetch(saveUrlFn(container), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: ids })
+      });
+    }
+  });
+}
+
+makeDraggable('#category-list', 'category-row', function () {
+  return "{{ url_for('admin.reorder_feature_categories', product_id=product.id) }}";
+});
+
+makeDraggable('.feature-list', 'feature-row', function (container) {
+  return "/admin/feature-categories/" + container.dataset.catId + "/features/reorder";
+});
 </script>
 {% endblock %}

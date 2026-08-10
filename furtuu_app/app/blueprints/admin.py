@@ -1033,6 +1033,34 @@ def reorder_eligibility(product_id):
     return jsonify({"status": "ok"})
 
 
+@admin_bp.route("/products/<int:product_id>/feature-categories/reorder", methods=["POST"])
+@login_required
+@admin_required
+def reorder_feature_categories(product_id):
+    data = request.get_json(silent=True) or {}
+    ordered_ids = data.get("order", [])
+    for index, cat_id in enumerate(ordered_ids):
+        c = ProductFeatureCategory.query.get(cat_id)
+        if c and c.product_id == product_id:
+            c.display_order = index
+    db.session.commit()
+    return jsonify({"status": "ok"})
+
+
+@admin_bp.route("/feature-categories/<int:category_id>/features/reorder", methods=["POST"])
+@login_required
+@admin_required
+def reorder_features(category_id):
+    data = request.get_json(silent=True) or {}
+    ordered_ids = data.get("order", [])
+    for index, feature_id in enumerate(ordered_ids):
+        f = ProductFeature.query.get(feature_id)
+        if f and f.category_id == category_id:
+            f.display_order = index
+    db.session.commit()
+    return jsonify({"status": "ok"})
+
+
 @admin_bp.route("/eligibility/<int:criterion_id>/delete", methods=["POST"])
 @login_required
 @admin_required
