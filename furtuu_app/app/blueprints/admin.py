@@ -1052,7 +1052,7 @@ def add_feature(product_id):
     product = Product.query.get_or_404(product_id)
     feature = request.form.get("feature", "").strip()
     value = request.form.get("value", "").strip()
-    if feature and value:
+    if feature:
         db.session.add(ProductFeature(
             product_id=product.id, feature=feature, value=value,
             display_order=len(product.product_features) + 1,
@@ -1071,8 +1071,7 @@ def edit_feature(feature_id):
     value = request.form.get("value", "").strip()
     if feature:
         f.feature = feature
-    if value:
-        f.value = value
+    f.value = value
     db.session.commit()
     flash("Feature updated.", "success")
     return redirect(url_for("admin.eligibility_admin", product_id=f.product_id))

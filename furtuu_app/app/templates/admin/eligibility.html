@@ -61,7 +61,7 @@
 
     <form method="POST" action="{{ url_for('admin.add_feature', product_id=product.id) }}" class="d-flex gap-2 align-items-center mt-3">
       <input class="form-control form-control-sm" name="feature" placeholder="e.g. Loan Tenure" style="max-width:260px" required>
-      <input class="form-control form-control-sm" name="value" placeholder="e.g. 4 - 12 months" style="max-width:260px" required>
+      <input class="form-control form-control-sm" name="value" placeholder="e.g. 4 - 12 months (optional)" style="max-width:260px">
       <button class="btn btn-sm btn-success">Add Feature</button>
     </form>
   </div>
