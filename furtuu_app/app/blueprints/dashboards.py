@@ -64,6 +64,21 @@ def reference(product_id):
     return render_template("dashboards/reference.html", product=product)
 
 
+@dashboards_bp.route("/product/<int:product_id>/projection")
+@login_required
+def projection(product_id):
+    product = get_product_or_404(product_id)
+    result = calc.compute_projection_summary(product)
+    return render_template("dashboards/projection.html", product=product, result=result)
+
+
+@dashboards_bp.route("/product/<int:product_id>/eligibility")
+@login_required
+def eligibility(product_id):
+    product = get_product_or_404(product_id)
+    return render_template("dashboards/eligibility.html", product=product)
+
+
 @dashboards_bp.route("/product/<int:product_id>/ngo-support")
 @login_required
 def ngo_support(product_id):
@@ -150,4 +165,3 @@ def save_ngo_selections(product_id):
     db.session.commit()
     flash("NGO support selections updated.", "success")
     return redirect(request.referrer or url_for("input.dashboard", product_id=product_id))
-

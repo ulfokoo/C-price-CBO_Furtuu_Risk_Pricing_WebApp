@@ -64,6 +64,15 @@ class Product(db.Model):
     ngo_support_items = db.relationship("NGOSupportItem", backref="product",
                                          cascade="all, delete-orphan",
                                          order_by="NGOSupportItem.display_order")
+    projection_scenarios = db.relationship("ProjectionScenario", backref="product",
+                                            cascade="all, delete-orphan",
+                                            order_by="ProjectionScenario.display_order")
+    eligibility_criteria = db.relationship("EligibilityCriterion", backref="product",
+                                            cascade="all, delete-orphan",
+                                            order_by="EligibilityCriterion.display_order")
+    product_features = db.relationship("ProductFeature", backref="product",
+                                        cascade="all, delete-orphan",
+                                        order_by="ProductFeature.display_order")
 
     def total_category_weight(self):
         return sum(c.weight_pct() for c in self.categories)
@@ -268,3 +277,64 @@ class PricingInput(db.Model):
 
     rwa_option = db.relationship("RWAOption", foreign_keys=[rwa_option_id])
     repayment_schedule = db.relationship("RepaymentSchedule", foreign_keys=[repayment_schedule_id])
+
+
+# ---------------------------------------------------------------------------
+# Projection (per-crop / per-segment volume & profitability projection)
+# Mirrors the "Profit_or_Return_For_30K" workbook: one tab per crop
+# (Wheat, Barley, ...), each with its own farmer count, ticket size, tenure
+# and rate assumptions, rolling up to Portfolio, Interest Income, Profit and
+# ROA. Add as many crops/segments as needed per product.
+# ---------------------------------------------------------------------------
+class ProjectionScenario(db.Model):
+    __tablename__ = "projection_scenarios"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+
+    crop_name = db.Column(db.String(120), nullable=False)      # 'Wheat', 'Barley', ...
+    year_label = db.Column(db.String(20), default="Y1")
+
+    number_of_farmers = db.Column(db.Integer, nullable=False, default=0)
+    ticket_size = db.Column(db.Float, nullable=False, default=0.0)          # ETB, input cost per farmer
+    loan_tenure_months = db.Column(db.Float, nullable=False, default=8.0)
+    monthly_interest_rate = db.Column(db.Float, nullable=False, default=0.0)  # fraction, e.g. 0.0196625
+
+    annual_cost_of_fund_pct = db.Column(db.Float, nullable=False, default=0.045)  # fraction, yearly WACF
+    cost_of_lmd_pct = db.Column(db.Float, nullable=False, default=0.0)      # fraction of portfolio
+    misc_cost_pct = db.Column(db.Float, nullable=False, default=0.01)       # fraction of interest income
+    access_fee_pct = db.Column(db.Float, nullable=False, default=0.035)     # fraction of portfolio (income)
+    rms_fee_pct = db.Column(db.Float, nullable=False, default=0.015)        # fraction of portfolio (cost)
+    disaster_risk_pct = db.Column(db.Float, nullable=False, default=0.0)    # fraction of portfolio (info only)
+
+    income_tax_pct = db.Column(db.Float, nullable=False, default=0.30)
+    provision_pct = db.Column(db.Float, nullable=False, default=0.05)         # fraction of profit after tax
+    provision_status_pct = db.Column(db.Float, nullable=False, default=0.25)  # fraction of provision amount
+
+    display_order = db.Column(db.Integer, default=0)
+
+
+# ---------------------------------------------------------------------------
+# Eligibility (who qualifies) + Product Features (loan terms/details)
+# ---------------------------------------------------------------------------
+class EligibilityCriterion(db.Model):
+    """A single qualifying condition, e.g. 'Minimum farm size' -> '>= 0.5 hectare'."""
+    __tablename__ = "eligibility_criteria"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+    criterion = db.Column(db.String(300), nullable=False)
+    requirement = db.Column(db.String(300), nullable=False)
+    is_mandatory = db.Column(db.Boolean, default=True)
+    display_order = db.Column(db.Integer, default=0)
+
+
+class ProductFeature(db.Model):
+    """A loan feature/detail row, e.g. 'Loan Tenure' -> '4 - 12 months'."""
+    __tablename__ = "product_features"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+    feature = db.Column(db.String(200), nullable=False)
+    value = db.Column(db.String(300), nullable=False)
+    display_order = db.Column(db.Integer, default=0)

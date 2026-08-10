@@ -47,6 +47,12 @@
       <a class="list-group-item list-group-item-action" href="{{ url_for('admin.ngo_support_admin', product_id=product.id) }}">
         <i class="bi bi-heart-fill me-2"></i><strong>NGO Support</strong> — add/edit/delete items and set the max price impact cap
       </a>
+      <a class="list-group-item list-group-item-action" href="{{ url_for('admin.projection_admin', product_id=product.id) }}">
+        <i class="bi bi-bar-chart-line me-2"></i><strong>Projection</strong> — add crop/segment volume & profit projections (Wheat, Barley, ...)
+      </a>
+      <a class="list-group-item list-group-item-action" href="{{ url_for('admin.eligibility_admin', product_id=product.id) }}">
+        <i class="bi bi-check2-square me-2"></i><strong>Eligibility</strong> — qualifying criteria and product features
+      </a>
     </div>
   </div>
 </div>

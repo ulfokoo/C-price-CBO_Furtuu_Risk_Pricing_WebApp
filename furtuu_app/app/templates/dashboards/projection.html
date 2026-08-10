@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — Projection{% endblock %}
+{% block content %}
+{% set active = 'projection' %}
+{% include "dashboards/_subnav.html" %}
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <h5 class="mb-0">Volume & Profitability Projections</h5>
+  {% if current_user.is_admin %}
+  <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.projection_admin', product_id=product.id) }}">Manage in Admin</a>
+  {% endif %}
+</div>
+<p class="text-muted small">Each card below is one crop / segment projection (e.g. Wheat, Barley) — number of farmers, ticket size, tenure and rates rolled up to Portfolio, Interest Income, Profit and ROA.</p>
+
+{% for row in result.rows %}
+<div class="card mb-3">
+  <div class="card-header cbo d-flex justify-content-between align-items-center">
+    <strong>{{ row.scenario.crop_name }}</strong>
+    <span class="fw-normal">{{ row.scenario.year_label }} — {{ row.scenario.number_of_farmers|int }} farmers, {{ row.scenario.loan_tenure_months|int }} months</span>
+  </div>
+  <table class="table table-sm mb-0">
+    <tbody>
+      <tr><td>Portfolio in ETB</td><td class="text-end">{{ "{:,.2f}".format(row.portfolio) }}</td></tr>
+      <tr><td>Interest Income ({{ "%.2f%%"|format(row.tenor_rate*100) }} over tenure)</td><td class="text-end">{{ "{:,.2f}".format(row.interest_income) }}</td></tr>
+      <tr><td>Cost of Fund</td><td class="text-end">{{ "{:,.2f}".format(row.cost_of_fund) }}</td></tr>
+      <tr><td>Cost of LMD</td><td class="text-end">{{ "{:,.2f}".format(row.cost_of_lmd) }}</td></tr>
+      <tr><td>Miscellaneous Cost</td><td class="text-end">{{ "{:,.2f}".format(row.misc_cost) }}</td></tr>
+      <tr><td>Access Fee</td><td class="text-end">{{ "{:,.2f}".format(row.access_fee) }}</td></tr>
+      <tr><td>RMS Service Fee</td><td class="text-end">{{ "{:,.2f}".format(row.rms_fee) }}</td></tr>
+      <tr class="text-muted"><td>Disaster Risk Reserve (informational)</td><td class="text-end">{{ "{:,.2f}".format(row.disaster_risk) }}</td></tr>
+      <tr class="fw-bold table-light"><td>Profit before Tax</td><td class="text-end">{{ "{:,.2f}".format(row.profit_before_tax) }}</td></tr>
+      <tr><td>Income Tax</td><td class="text-end">{{ "{:,.2f}".format(row.income_tax) }}</td></tr>
+      <tr class="fw-bold table-light"><td>Profit after Tax</td><td class="text-end">{{ "{:,.2f}".format(row.profit_after_tax) }}</td></tr>
+      <tr><td>Provision Amount</td><td class="text-end">{{ "{:,.2f}".format(row.provision_amount) }}</td></tr>
+      <tr><td>Provision (by loan status)</td><td class="text-end">{{ "{:,.2f}".format(row.provision_status_amount) }}</td></tr>
+      <tr class="fw-bold table-success"><td>Net Profit</td><td class="text-end">{{ "{:,.2f}".format(row.net_profit) }}</td></tr>
+      <tr class="fw-bold"><td>ROA</td><td class="text-end">{{ "%.2f%%"|format(row.roa*100) }}</td></tr>
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="text-muted">No projections added yet for this product.
+  {% if current_user.is_admin %}Add one from <a href="{{ url_for('admin.projection_admin', product_id=product.id) }}">Admin → Projection</a>.{% endif %}
+</p>
+{% endfor %}
+
+{% if result.rows %}
+<div class="card mt-3">
+  <div class="card-header cbo">Combined Totals — All Crops / Segments</div>
+  <table class="table table-sm mb-0">
+    <tbody>
+      <tr><td>Total Farmers</td><td class="text-end">{{ "{:,}".format(result.total_farmers|int) }}</td></tr>
+      <tr><td>Total Portfolio</td><td class="text-end">{{ "{:,.2f}".format(result.total_portfolio) }}</td></tr>
+      <tr><td>Total Interest Income</td><td class="text-end">{{ "{:,.2f}".format(result.total_interest_income) }}</td></tr>
+      <tr class="fw-bold table-success"><td>Total Net Profit</td><td class="text-end">{{ "{:,.2f}".format(result.total_net_profit) }}</td></tr>
+      <tr class="fw-bold"><td>Blended ROA</td><td class="text-end">{{ "%.2f%%"|format(result.blended_roa*100) }}</td></tr>
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

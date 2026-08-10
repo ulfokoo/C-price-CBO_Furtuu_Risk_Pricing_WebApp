@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Eligibility — {{ product.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3><i class="bi bi-check2-square"></i> Eligibility — {{ product.name }}</h3>
+  <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">Back</a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header cbo">Eligibility Criteria — who qualifies</div>
+  <div class="card-body">
+    {% for c in product.eligibility_criteria %}
+    <form method="POST" action="{{ url_for('admin.edit_eligibility', criterion_id=c.id) }}" class="d-flex gap-2 align-items-center mb-2">
+      <input class="form-control form-control-sm" name="criterion" value="{{ c.criterion }}" style="max-width:260px">
+      <input class="form-control form-control-sm" name="requirement" value="{{ c.requirement }}" style="max-width:260px">
+      <div class="form-check form-check-inline">
+        <input type="checkbox" class="form-check-input" name="is_mandatory" {{ 'checked' if c.is_mandatory }}>
+        <label class="form-check-label small">Mandatory</label>
+      </div>
+      <button class="btn btn-sm btn-outline-primary">Save</button>
+      <button type="submit" formaction="{{ url_for('admin.delete_eligibility', criterion_id=c.id) }}" formnovalidate class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this criterion?');">Delete</button>
+    </form>
+    {% else %}
+    <p class="text-muted">No eligibility criteria yet.</p>
+    {% endfor %}
+
+    <form method="POST" action="{{ url_for('admin.add_eligibility', product_id=product.id) }}" class="d-flex gap-2 align-items-center mt-3">
+      <input class="form-control form-control-sm" name="criterion" placeholder="e.g. Minimum farm size" style="max-width:260px" required>
+      <input class="form-control form-control-sm" name="requirement" placeholder="e.g. >= 0.5 hectare" style="max-width:260px" required>
+      <div class="form-check form-check-inline">
+        <input type="checkbox" class="form-check-input" name="is_mandatory" checked>
+        <label class="form-check-label small">Mandatory</label>
+      </div>
+      <button class="btn btn-sm btn-success">Add Criterion</button>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header cbo">Product Features</div>
+  <div class="card-body">
+    {% for f in product.product_features %}
+    <form method="POST" action="{{ url_for('admin.edit_feature', feature_id=f.id) }}" class="d-flex gap-2 align-items-center mb-2">
+      <input class="form-control form-control-sm" name="feature" value="{{ f.feature }}" style="max-width:260px">
+      <input class="form-control form-control-sm" name="value" value="{{ f.value }}" style="max-width:260px">
+      <button class="btn btn-sm btn-outline-primary">Save</button>
+      <button type="submit" formaction="{{ url_for('admin.delete_feature', feature_id=f.id) }}" formnovalidate class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this feature?');">Delete</button>
+    </form>
+    {% else %}
+    <p class="text-muted">No product features yet.</p>
+    {% endfor %}
+
+    <form method="POST" action="{{ url_for('admin.add_feature', product_id=product.id) }}" class="d-flex gap-2 align-items-center mt-3">
+      <input class="form-control form-control-sm" name="feature" placeholder="e.g. Loan Tenure" style="max-width:260px" required>
+      <input class="form-control form-control-sm" name="value" placeholder="e.g. 4 - 12 months" style="max-width:260px" required>
+      <button class="btn btn-sm btn-success">Add Feature</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

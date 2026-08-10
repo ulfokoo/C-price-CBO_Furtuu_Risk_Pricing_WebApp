@@ -240,3 +240,88 @@ def compute_pricing(product):
         })
 
     return {"main": main_scenario, "grade_rows": grade_rows}
+
+
+# ---------------------------------------------------------------------------
+# Projection (mirrors the "Profit_or_Return_For_30K" workbook — one tab per
+# crop/segment: Wheat, Barley, etc.)
+# ---------------------------------------------------------------------------
+def compute_projection(scenario):
+    """Mirrors a single crop tab, e.g. 'Wheat' / 'Barley':
+    Portfolio -> Interest Income -> Profit before/after tax -> Net Profit -> ROA.
+
+    Formula notes (reverse-engineered from the workbook):
+      Portfolio            = Number of farmers * Ticket size
+      Interest Income      = Portfolio * Monthly Interest Rate * Loan Tenure (months)
+      Cost of Fund         = Portfolio * Annual Cost of Fund % * (Tenure / 12)
+      Cost of LMD          = Portfolio * Cost of LMD %
+      Miscellaneous cost   = Interest Income * Misc cost %
+      Access fee           = Portfolio * Access fee %   (this is INCOME, added back)
+      RMS service fee      = Portfolio * RMS fee %       (cost, on disbursement)
+      Disaster Risk        = Portfolio * Disaster risk % (informational reserve only,
+                              matches the workbook: it is disclosed but not deducted
+                              from Profit before tax)
+      Profit before tax    = Interest Income + Access fee - Cost of Fund - Cost of LMD
+                              - Misc cost - RMS fee
+      Income tax           = Profit before tax * Income tax %
+      Profit after tax     = Profit before tax - Income tax
+      Provision amount     = Profit after tax * Provision %
+      Provision (by status)= Provision amount * Provision status %
+      Net profit           = Profit after tax - Provision (by status)
+      ROA                  = Net profit / Portfolio
+    """
+    portfolio = scenario.number_of_farmers * scenario.ticket_size
+    interest_income = portfolio * scenario.monthly_interest_rate * scenario.loan_tenure_months
+    cost_of_fund = portfolio * scenario.annual_cost_of_fund_pct * (scenario.loan_tenure_months / 12.0)
+    cost_of_lmd = portfolio * scenario.cost_of_lmd_pct
+    misc_cost = interest_income * scenario.misc_cost_pct
+    access_fee = portfolio * scenario.access_fee_pct
+    rms_fee = portfolio * scenario.rms_fee_pct
+    disaster_risk = portfolio * scenario.disaster_risk_pct
+
+    profit_before_tax = interest_income + access_fee - cost_of_fund - cost_of_lmd - misc_cost - rms_fee
+    income_tax = profit_before_tax * scenario.income_tax_pct
+    profit_after_tax = profit_before_tax - income_tax
+    provision_amount = profit_after_tax * scenario.provision_pct
+    provision_status_amount = provision_amount * scenario.provision_status_pct
+    net_profit = profit_after_tax - provision_status_amount
+    roa = (net_profit / portfolio) if portfolio else 0.0
+    tenor_rate = scenario.monthly_interest_rate * scenario.loan_tenure_months
+
+    return {
+        "scenario": scenario,
+        "portfolio": portfolio,
+        "interest_income": interest_income,
+        "cost_of_fund": cost_of_fund,
+        "cost_of_lmd": cost_of_lmd,
+        "misc_cost": misc_cost,
+        "access_fee": access_fee,
+        "rms_fee": rms_fee,
+        "disaster_risk": disaster_risk,
+        "profit_before_tax": profit_before_tax,
+        "income_tax": income_tax,
+        "profit_after_tax": profit_after_tax,
+        "provision_amount": provision_amount,
+        "provision_status_amount": provision_status_amount,
+        "net_profit": net_profit,
+        "roa": roa,
+        "tenor_rate": tenor_rate,
+    }
+
+
+def compute_projection_summary(product):
+    """All crop/segment projections for a product, plus portfolio-wide totals."""
+    rows = [compute_projection(s) for s in product.projection_scenarios]
+    total_portfolio = sum(r["portfolio"] for r in rows)
+    total_interest_income = sum(r["interest_income"] for r in rows)
+    total_net_profit = sum(r["net_profit"] for r in rows)
+    total_farmers = sum(r["scenario"].number_of_farmers for r in rows)
+    blended_roa = (total_net_profit / total_portfolio) if total_portfolio else 0.0
+    return {
+        "rows": rows,
+        "total_portfolio": total_portfolio,
+        "total_interest_income": total_interest_income,
+        "total_net_profit": total_net_profit,
+        "total_farmers": total_farmers,
+        "blended_roa": blended_roa,
+    }

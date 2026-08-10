@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} — Eligibility{% endblock %}
+{% block content %}
+{% set active = 'eligibility' %}
+{% include "dashboards/_subnav.html" %}
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <h5 class="mb-0">Eligibility & Product Features</h5>
+  {% if current_user.is_admin %}
+  <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.eligibility_admin', product_id=product.id) }}">Manage in Admin</a>
+  {% endif %}
+</div>
+
+<div class="card mb-3">
+  <div class="card-header cbo">Eligibility Criteria — who qualifies for {{ product.name }}</div>
+  <table class="table table-sm mb-0">
+    <thead><tr><th>Criterion</th><th>Requirement</th><th>Mandatory</th></tr></thead>
+    <tbody>
+    {% for c in product.eligibility_criteria %}
+      <tr>
+        <td>{{ c.criterion }}</td>
+        <td>{{ c.requirement }}</td>
+        <td>{{ "Yes" if c.is_mandatory else "Optional" }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="3" class="text-muted">No eligibility criteria added yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-header cbo">Product Features</div>
+  <table class="table table-sm mb-0">
+    <thead><tr><th>Feature</th><th>Detail</th></tr></thead>
+    <tbody>
+    {% for f in product.product_features %}
+      <tr>
+        <td>{{ f.feature }}</td>
+        <td>{{ f.value }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="2" class="text-muted">No product features added yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

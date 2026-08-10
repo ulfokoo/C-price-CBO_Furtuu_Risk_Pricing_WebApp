@@ -7,8 +7,9 @@ from app import db
 from app.models import (
     Product, ScoreCategory, SubParameter, ScoringOption, PricingInput,
     CostOfFundSource, RWAOption, RepaymentSchedule, OperationalCostComponent, PDGrade,
-    NGOSupportItem, NGOSupportTier,
+    NGOSupportItem, NGOSupportTier, ProjectionScenario, EligibilityCriterion, ProductFeature,
 )
+from app import calculations as calc
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -752,3 +753,193 @@ def edit_pd_grade(grade_id):
     db.session.commit()
     flash("PD grade updated.", "success")
     return redirect(url_for("admin.pd_grades_admin", product_id=g.product_id))
+
+
+# ---------------------------------------------------------------------------
+# Projection (per-crop / per-segment profitability projection)
+# ---------------------------------------------------------------------------
+_PROJECTION_PCT_FIELDS = [
+    "monthly_interest_rate", "annual_cost_of_fund_pct", "cost_of_lmd_pct",
+    "misc_cost_pct", "access_fee_pct", "rms_fee_pct", "disaster_risk_pct",
+    "income_tax_pct", "provision_pct", "provision_status_pct",
+]
+_PROJECTION_NUM_FIELDS = ["number_of_farmers", "ticket_size", "loan_tenure_months"]
+
+
+@admin_bp.route("/products/<int:product_id>/projection")
+@login_required
+@admin_required
+def projection_admin(product_id):
+    product = Product.query.get_or_404(product_id)
+    result = calc.compute_projection_summary(product)
+    return render_template("admin/projection.html", product=product, result=result)
+
+
+@admin_bp.route("/products/<int:product_id>/projection/add", methods=["POST"])
+@login_required
+@admin_required
+def add_projection(product_id):
+    product = Product.query.get_or_404(product_id)
+    crop_name = request.form.get("crop_name", "").strip()
+    if not crop_name:
+        flash("Crop / segment name is required.", "danger")
+        return redirect(url_for("admin.projection_admin", product_id=product_id))
+
+    sc = ProjectionScenario(
+        product_id=product.id,
+        crop_name=crop_name,
+        year_label=(request.form.get("year_label", "Y1").strip() or "Y1"),
+        display_order=len(product.projection_scenarios) + 1,
+    )
+    for field in _PROJECTION_NUM_FIELDS:
+        val = request.form.get(field, type=float)
+        if val is not None:
+            setattr(sc, field, val)
+    for field in _PROJECTION_PCT_FIELDS:
+        val = request.form.get(field, type=float)
+        if val is not None:
+            setattr(sc, field, val / 100.0)
+    db.session.add(sc)
+    db.session.commit()
+    flash(f"Projection '{crop_name}' added.", "success")
+    return redirect(url_for("admin.projection_admin", product_id=product_id))
+
+
+@admin_bp.route("/projection/<int:scenario_id>/edit", methods=["POST"])
+@login_required
+@admin_required
+def edit_projection(scenario_id):
+    sc = ProjectionScenario.query.get_or_404(scenario_id)
+    crop_name = request.form.get("crop_name", "").strip()
+    if crop_name:
+        sc.crop_name = crop_name
+    year_label = request.form.get("year_label", "").strip()
+    if year_label:
+        sc.year_label = year_label
+    for field in _PROJECTION_NUM_FIELDS:
+        val = request.form.get(field, type=float)
+        if val is not None:
+            setattr(sc, field, val)
+    for field in _PROJECTION_PCT_FIELDS:
+        val = request.form.get(field, type=float)
+        if val is not None:
+            setattr(sc, field, val / 100.0)
+    db.session.commit()
+    flash(f"Projection '{sc.crop_name}' updated.", "success")
+    return redirect(url_for("admin.projection_admin", product_id=sc.product_id))
+
+
+@admin_bp.route("/projection/<int:scenario_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_projection(scenario_id):
+    sc = ProjectionScenario.query.get_or_404(scenario_id)
+    product_id = sc.product_id
+    name = sc.crop_name
+    db.session.delete(sc)
+    db.session.commit()
+    flash(f"Projection '{name}' deleted.", "info")
+    return redirect(url_for("admin.projection_admin", product_id=product_id))
+
+
+# ---------------------------------------------------------------------------
+# Eligibility (criteria) + Product Features
+# ---------------------------------------------------------------------------
+@admin_bp.route("/products/<int:product_id>/eligibility")
+@login_required
+@admin_required
+def eligibility_admin(product_id):
+    product = Product.query.get_or_404(product_id)
+    return render_template("admin/eligibility.html", product=product)
+
+
+@admin_bp.route("/products/<int:product_id>/eligibility/add", methods=["POST"])
+@login_required
+@admin_required
+def add_eligibility(product_id):
+    product = Product.query.get_or_404(product_id)
+    criterion = request.form.get("criterion", "").strip()
+    requirement = request.form.get("requirement", "").strip()
+    if criterion and requirement:
+        db.session.add(EligibilityCriterion(
+            product_id=product.id, criterion=criterion, requirement=requirement,
+            is_mandatory=bool(request.form.get("is_mandatory")),
+            display_order=len(product.eligibility_criteria) + 1,
+        ))
+        db.session.commit()
+        flash(f"Eligibility criterion '{criterion}' added.", "success")
+    return redirect(url_for("admin.eligibility_admin", product_id=product_id))
+
+
+@admin_bp.route("/eligibility/<int:criterion_id>/edit", methods=["POST"])
+@login_required
+@admin_required
+def edit_eligibility(criterion_id):
+    c = EligibilityCriterion.query.get_or_404(criterion_id)
+    criterion = request.form.get("criterion", "").strip()
+    requirement = request.form.get("requirement", "").strip()
+    if criterion:
+        c.criterion = criterion
+    if requirement:
+        c.requirement = requirement
+    c.is_mandatory = bool(request.form.get("is_mandatory"))
+    db.session.commit()
+    flash("Eligibility criterion updated.", "success")
+    return redirect(url_for("admin.eligibility_admin", product_id=c.product_id))
+
+
+@admin_bp.route("/eligibility/<int:criterion_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_eligibility(criterion_id):
+    c = EligibilityCriterion.query.get_or_404(criterion_id)
+    product_id = c.product_id
+    db.session.delete(c)
+    db.session.commit()
+    flash("Eligibility criterion deleted.", "info")
+    return redirect(url_for("admin.eligibility_admin", product_id=product_id))
+
+
+@admin_bp.route("/products/<int:product_id>/features/add", methods=["POST"])
+@login_required
+@admin_required
+def add_feature(product_id):
+    product = Product.query.get_or_404(product_id)
+    feature = request.form.get("feature", "").strip()
+    value = request.form.get("value", "").strip()
+    if feature and value:
+        db.session.add(ProductFeature(
+            product_id=product.id, feature=feature, value=value,
+            display_order=len(product.product_features) + 1,
+        ))
+        db.session.commit()
+        flash(f"Feature '{feature}' added.", "success")
+    return redirect(url_for("admin.eligibility_admin", product_id=product_id))
+
+
+@admin_bp.route("/features/<int:feature_id>/edit", methods=["POST"])
+@login_required
+@admin_required
+def edit_feature(feature_id):
+    f = ProductFeature.query.get_or_404(feature_id)
+    feature = request.form.get("feature", "").strip()
+    value = request.form.get("value", "").strip()
+    if feature:
+        f.feature = feature
+    if value:
+        f.value = value
+    db.session.commit()
+    flash("Feature updated.", "success")
+    return redirect(url_for("admin.eligibility_admin", product_id=f.product_id))
+
+
+@admin_bp.route("/features/<int:feature_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_feature(feature_id):
+    f = ProductFeature.query.get_or_404(feature_id)
+    product_id = f.product_id
+    db.session.delete(f)
+    db.session.commit()
+    flash("Feature deleted.", "info")
+    return redirect(url_for("admin.eligibility_admin", product_id=product_id))
