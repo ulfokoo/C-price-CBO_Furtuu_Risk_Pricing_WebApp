@@ -17,11 +17,14 @@
       <div class="card-body">
         <p class="text-muted small">{{ p.description or "No description yet." }}</p>
         <div class="list-group list-group-flush">
-        {% for c in p.eligibility_criteria %}
+        {% for c in p.eligibility_criteria[:4] %}
           <span class="list-group-item"><i class="bi bi-check2-square me-1"></i> {{ c.criterion }}</span>
         {% else %}
           <span class="list-group-item text-muted">No eligibility criteria added yet.</span>
         {% endfor %}
+        {% if p.eligibility_criteria|length > 4 %}
+          <span class="list-group-item text-muted small">+ {{ p.eligibility_criteria|length - 4 }} more — see full list below</span>
+        {% endif %}
         </div>
       </div>
       <div class="card-footer bg-white">
