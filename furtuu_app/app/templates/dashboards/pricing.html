@@ -26,7 +26,6 @@
         <tr><td>Interest Rate (Annual) before NGO Support</td><td>{{ "%.3f%%"|format(m.interest_rate_annual_before_ngo*100) }}</td><td>{{ "{:,.2f}".format(m.interest_rate_annual_before_ngo * m.loan_amount) }}</td></tr>
         <tr class="table-info"><td>Less: NGO Support ({{ "%.0f%%"|format(m.ngo_total_pct*100) }} allocated)</td><td>-{{ "%.3f%%"|format(m.ngo_effective_reduction_pct*100) }}</td><td>-{{ "{:,.2f}".format(m.ngo_effective_reduction_pct * m.loan_amount) }}</td></tr>
         <tr class="table-success fw-bold"><td>Interest Rate (Annual) — NGO-Adjusted</td><td>{{ "%.3f%%"|format(m.interest_rate_annual*100) }}</td><td>{{ "{:,.2f}".format(m.interest_rate_annual_etb) }}</td></tr>
-        <tr class="fw-bold"><td>Interest Rate ({{ m.tenure_months|round(0)|int }} months tenor)</td><td>{{ "%.3f%%"|format(m.interest_rate_tenor*100) }}</td><td>{{ "{:,.2f}".format(m.interest_rate_tenor_etb) }}</td></tr>
         <tr><td>Less: Expected Access Fee</td><td>{{ "%.3f%%"|format(m.access_fee_pct*100) }}</td><td>-{{ "{:,.2f}".format(m.access_fee_etb) }}</td></tr>
         <tr class="table-warning fw-bold"><td>Required Interest Rate on the Loan</td><td>{{ "%.3f%%"|format(m.required_rate*100) }}</td><td>{{ "{:,.2f}".format(m.required_rate_etb) }}</td></tr>
       </tbody>
@@ -38,7 +37,7 @@
   <div class="card-header cbo">Price Across Bankable Risk Grade</div>
   <div class="table-responsive">
     <table class="table table-sm table-striped mb-0">
-      <thead><tr><th>Grade</th><th>PD</th><th>Target Return</th><th>Cost of Fund</th><th>Tenure Charge</th><th>Op. Cost</th><th>Credit Risk Premium</th><th>Interest Rate (Annual)</th><th>Interest Rate (Tenor)</th><th>NGO</th><th>Interest Rate (Annual) after NGO</th><th>Interest Rate (Tenor) after NGO</th></tr></thead>
+      <thead><tr><th>Grade</th><th>PD</th><th>Target Return</th><th>Cost of Fund</th><th>Tenure Charge</th><th>Op. Cost</th><th>Credit Risk Premium</th><th>Interest Rate (Annual)</th><th>Interest Rate (Annual) after NGO</th></tr></thead>
       <tbody>
       {% for r in result.grade_rows %}
         <tr>
@@ -50,10 +49,7 @@
           <td>{{ "%.3f%%"|format(r.op_cost*100) }}</td>
           <td>{{ "%.3f%%"|format(r.credit_risk_premium*100) }}</td>
           <td class="fw-bold">{{ "%.3f%%"|format(r.interest_rate_annual*100) }}</td>
-          <td class="fw-bold">{{ "%.3f%%"|format(r.interest_rate_tenor*100) }}</td>
-          <td class="text-info">-{{ "%.3f%%"|format(r.ngo_reduction*100) }}</td>
           <td class="fw-bold table-success">{{ "%.3f%%"|format(r.interest_rate_annual_after_ngo*100) }}</td>
-          <td class="fw-bold table-success">{{ "%.3f%%"|format(r.interest_rate_tenor_after_ngo*100) }}</td>
         </tr>
       {% endfor %}
       </tbody>
