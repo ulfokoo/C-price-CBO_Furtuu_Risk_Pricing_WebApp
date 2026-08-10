@@ -340,21 +340,21 @@ def add_scoring_option(sp_id):
     return redirect(url_for("admin.scorecard_builder", product_id=sp.category.product_id))
 
 
-@admin_bp.route("/options/<int:opt_id>/edit", methods=["POST"])
+@admin_bp.route("/sub-parameters/<int:sp_id>/options/save-all", methods=["POST"])
 @login_required
 @admin_required
-def edit_scoring_option(opt_id):
-    opt = ScoringOption.query.get_or_404(opt_id)
-    label = request.form.get("label", "").strip()
-    score = request.form.get("score", type=float)
-    if label:
-        opt.label = label
-    if score is not None:
-        opt.score = score
+def edit_scoring_options_bulk(sp_id):
+    sp = SubParameter.query.get_or_404(sp_id)
+    for opt in sp.options:
+        label = request.form.get(f"label_{opt.id}", "").strip()
+        score = request.form.get(f"score_{opt.id}", type=float)
+        if label:
+            opt.label = label
+        if score is not None:
+            opt.score = score
     db.session.commit()
-    flash("Scoring attribute updated.", "success")
-    return redirect(url_for("admin.scorecard_builder", product_id=opt.sub_parameter.category.product_id))
-
+    flash("Scoring attributes updated.", "success")
+    return redirect(url_for("admin.scorecard_builder", product_id=sp.category.product_id))
 
 @admin_bp.route("/options/<int:opt_id>/delete", methods=["POST"])
 @login_required
