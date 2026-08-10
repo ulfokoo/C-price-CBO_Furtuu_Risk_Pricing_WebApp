@@ -31,52 +31,50 @@
   </table>
 </div>
 
-{% for cat in product.feature_categories %}
-<div class="card mb-3">
-  <div class="card-header cbo">{{ cat.name }}</div>
-  <table class="table table-sm mb-0">
-    <thead><tr><th>Feature</th><th>Detail</th></tr></thead>
-    <tbody>
-    {% for f in cat.features %}
-      <tr>
-        <td>{{ f.feature }}</td>
-        <td>
-          {% if f.values %}
-            {% for v in f.values %}
-              <div>{{ v.value }}</div>
-            {% endfor %}
-          {% else %}
-            {{ f.value }}
-          {% endif %}
-        </td>
-      </tr>
-    {% else %}
-      <tr><td colspan="2" class="text-muted">No features in this category yet.</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endfor %}
-
 {% set uncategorized = product.product_features | selectattr('category_id', 'none') | list %}
-{% if uncategorized %}
-<div class="card">
+{% if product.feature_categories or uncategorized %}
+<div class="card mb-3">
   <div class="card-header cbo">Product Features</div>
-  <table class="table table-sm mb-0">
-    <thead><tr><th>Feature</th><th>Detail</th></tr></thead>
-    <tbody>
-    {% for f in uncategorized %}
-      <tr>
-        <td>{{ f.feature }}</td>
-        <td>{{ f.values | map(attribute='value') | join(', ') if f.values else f.value }}</td>
-      </tr>
+  <div class="card-body p-0">
+    {% for cat in product.feature_categories %}
+    <table class="table table-sm mb-0">
+      <thead><tr><th colspan="2" class="table-light">{{ cat.name }}</th></tr></thead>
+      <tbody>
+      {% for f in cat.features %}
+        <tr>
+          <td style="width:35%">{{ f.feature }}</td>
+          <td>
+            {% if f.values %}
+              {% for v in f.values %}
+                <div>{{ v.value }}</div>
+              {% endfor %}
+            {% else %}
+              {{ f.value }}
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="2" class="text-muted">No features in this category yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
     {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endif %}
 
-{% if not product.feature_categories and not uncategorized %}
+    {% if uncategorized %}
+    <table class="table table-sm mb-0">
+      <tbody>
+      {% for f in uncategorized %}
+        <tr>
+          <td style="width:35%">{{ f.feature }}</td>
+          <td>{{ f.values | map(attribute='value') | join(', ') if f.values else f.value }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+</div>
+{% else %}
 <div class="card">
   <div class="card-header cbo">Product Features</div>
   <div class="card-body text-muted">No product features added yet.</div>
