@@ -64,6 +64,20 @@ def reference(product_id):
     return render_template("dashboards/reference.html", product=product)
 
 
+@dashboards_bp.route("/projection")
+@login_required
+def projection_home():
+    products = Product.query.order_by(Product.name).all()
+    return render_template("dashboards/projection_home.html", products=products)
+
+
+@dashboards_bp.route("/eligibility")
+@login_required
+def eligibility_home():
+    products = Product.query.order_by(Product.name).all()
+    return render_template("dashboards/eligibility_home.html", products=products)
+
+
 @dashboards_bp.route("/product/<int:product_id>/projection")
 @login_required
 def projection(product_id):

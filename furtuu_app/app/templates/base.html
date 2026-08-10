@@ -21,7 +21,10 @@
     <div class="collapse navbar-collapse" id="nav">
       <ul class="navbar-nav me-auto">
         <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboards.home') }}">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboards.eligibility_home') }}">Eligibility</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('input.input_dashboard') }}">Input Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboards.home') }}">Product</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboards.projection_home') }}">Projection</a></li>
         {% if current_user.is_admin %}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Admin</a>
