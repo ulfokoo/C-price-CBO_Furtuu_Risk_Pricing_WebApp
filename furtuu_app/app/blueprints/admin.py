@@ -978,7 +978,69 @@ def new_eligibility():
 @admin_required
 def eligibility_admin(product_id):
     product = Product.query.get_or_404(product_id)
-    return render_template("admin/eligibility.html", product=product)
+    other_products = Product.query.filter(Product.id != product_id).order_by(Product.name).all()
+    return render_template("admin/eligibility.html", product=product, other_products=other_products)
+
+
+@admin_bp.route("/products/<int:product_id>/eligibility/clone", methods=["POST"])
+@login_required
+@admin_required
+def clone_eligibility(product_id):
+    product = Product.query.get_or_404(product_id)
+    source_id = request.form.get("source_product_id", type=int)
+    source = Product.query.get(source_id)
+
+    if not source or source.id == product.id:
+        flash("Please choose a valid product to clone from.", "danger")
+        return redirect(url_for("admin.eligibility_admin", product_id=product.id))
+
+    # Clone eligibility criteria
+    for c in source.eligibility_criteria:
+        db.session.add(EligibilityCriterion(
+            product_id=product.id,
+            criterion=c.criterion,
+            requirement=c.requirement,
+            is_mandatory=c.is_mandatory,
+            display_order=c.display_order,
+        ))
+
+    # Clone feature categories -> features -> values
+    for cat in source.feature_categories:
+        new_cat = ProductFeatureCategory(
+            product_id=product.id, name=cat.name, display_order=cat.display_order,
+        )
+        db.session.add(new_cat)
+        db.session.flush()  # assign new_cat.id
+
+        for f in cat.features:
+            new_f = ProductFeature(
+                product_id=product.id, category_id=new_cat.id,
+                feature=f.feature, value=f.value, display_order=f.display_order,
+            )
+            db.session.add(new_f)
+            db.session.flush()
+            for v in f.values:
+                db.session.add(ProductFeatureValue(
+                    feature_id=new_f.id, value=v.value, display_order=v.display_order,
+                ))
+
+    # Clone uncategorized features too
+    for f in source.product_features:
+        if f.category_id is None:
+            new_f = ProductFeature(
+                product_id=product.id, category_id=None,
+                feature=f.feature, value=f.value, display_order=f.display_order,
+            )
+            db.session.add(new_f)
+            db.session.flush()
+            for v in f.values:
+                db.session.add(ProductFeatureValue(
+                    feature_id=new_f.id, value=v.value, display_order=v.display_order,
+                ))
+
+    db.session.commit()
+    flash(f"Cloned eligibility & product features from '{source.name}' into '{product.name}'.", "success")
+    return redirect(url_for("admin.eligibility_admin", product_id=product.id))
 
 
 @admin_bp.route("/products/<int:product_id>/eligibility/add", methods=["POST"])
