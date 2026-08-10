@@ -33,35 +33,11 @@
 
 <div class="tab-content" id="projTabsContent">
   {% for row in result.rows %}
-  {% set sc = row.scenario %}
   <div class="tab-pane fade {{ 'show active' if loop.first }}" id="tab-{{ loop.index }}" role="tabpanel">
-
-    <div class="card mb-3">
-      <div class="card-header cbo">Inputs — {{ sc.crop_name }}</div>
-      <table class="table table-sm mb-0">
-        <tbody>
-          <tr><td>Year Label</td><td class="text-end">{{ sc.year_label }}</td></tr>
-          <tr><td>Number of Farmers</td><td class="text-end">{{ "{:,}".format(sc.number_of_farmers|int) }}</td></tr>
-          <tr><td>Ticket Size (ETB)</td><td class="text-end">{{ "{:,.2f}".format(sc.ticket_size) }}</td></tr>
-          <tr><td>Loan Tenure (months)</td><td class="text-end">{{ sc.loan_tenure_months }}</td></tr>
-          <tr><td>Monthly Interest Rate %</td><td class="text-end">{{ "%.4f"|format(sc.monthly_interest_rate*100) }}</td></tr>
-          <tr><td>Annual Cost of Fund %</td><td class="text-end">{{ "%.2f"|format(sc.annual_cost_of_fund_pct*100) }}</td></tr>
-          <tr><td>Cost of LMD % of Portfolio</td><td class="text-end">{{ "%.4f"|format(sc.cost_of_lmd_pct*100) }}</td></tr>
-          <tr><td>Misc Cost % of Interest Income</td><td class="text-end">{{ "%.2f"|format(sc.misc_cost_pct*100) }}</td></tr>
-          <tr><td>Access Fee % of Portfolio</td><td class="text-end">{{ "%.2f"|format(sc.access_fee_pct*100) }}</td></tr>
-          <tr><td>RMS Fee % of Portfolio</td><td class="text-end">{{ "%.2f"|format(sc.rms_fee_pct*100) }}</td></tr>
-          <tr><td>Disaster Risk % (info only)</td><td class="text-end">{{ "%.4f"|format(sc.disaster_risk_pct*100) }}</td></tr>
-          <tr><td>Income Tax %</td><td class="text-end">{{ "%.2f"|format(sc.income_tax_pct*100) }}</td></tr>
-          <tr><td>Provision % of PAT</td><td class="text-end">{{ "%.2f"|format(sc.provision_pct*100) }}</td></tr>
-          <tr><td>Provision by Status %</td><td class="text-end">{{ "%.2f"|format(sc.provision_status_pct*100) }}</td></tr>
-        </tbody>
-      </table>
-    </div>
-
     <div class="card">
       <div class="card-header cbo d-flex justify-content-between align-items-center">
-        <strong>{{ sc.crop_name }}</strong>
-        <span class="fw-normal">{{ sc.year_label }} — {{ sc.number_of_farmers|int }} farmers, {{ sc.loan_tenure_months|int }} months</span>
+        <strong>{{ row.scenario.crop_name }}</strong>
+        <span class="fw-normal">{{ row.scenario.year_label }} — {{ row.scenario.number_of_farmers|int }} farmers, {{ row.scenario.loan_tenure_months|int }} months</span>
       </div>
       <table class="table table-sm mb-0">
         <tbody>
