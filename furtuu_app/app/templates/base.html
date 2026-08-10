@@ -24,7 +24,14 @@
         <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboards.eligibility_home') }}">Eligibility</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('input.input_dashboard') }}">Input Dashboard</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboards.home') }}">Product</a></li>
-        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboards.projection_home') }}">Projection</a></li>
+        <li class="nav-item d-flex align-items-center">
+          <a class="nav-link" href="{{ url_for('dashboards.projection_home') }}">Projection</a>
+          {% if current_user.is_admin %}
+          <a class="nav-link px-1" href="{{ url_for('admin.products') }}" title="Admin — manage projections">
+            <i class="bi bi-gear"></i>
+          </a>
+          {% endif %}
+        </li>
       </ul>
       <ul class="navbar-nav">
         {% if current_user.is_admin %}
