@@ -73,17 +73,19 @@
           </form>
         </div>
 
-        <div class="mb-1">
-          {% for v in f.values %}
-          <form method="POST" action="{{ url_for('admin.edit_feature_value', value_id=v.id) }}" class="d-flex gap-2 align-items-center mb-1">
-            <input class="form-control form-control-sm" name="value" value="{{ v.value }}" style="max-width:240px">
-            <button class="btn btn-sm btn-outline-primary">Save</button>
-            <button type="submit" formaction="{{ url_for('admin.delete_feature_value', value_id=v.id) }}" formnovalidate class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this value?');">Delete</button>
-          </form>
-          {% else %}
-          <p class="text-muted small mb-1">No values yet.</p>
-          {% endfor %}
-        </div>
+        <form method="POST" action="{{ url_for('admin.edit_feature_values_bulk', feature_id=f.id) }}" class="d-flex flex-wrap gap-2 align-items-center mb-1">
+        {% for v in f.values %}
+          <span class="d-flex gap-1 align-items-center border rounded p-1 bg-white">
+            <button type="submit" formaction="{{ url_for('admin.delete_feature_value', value_id=v.id) }}" formnovalidate class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this value?');">✕</button>
+            <input class="form-control form-control-sm" name="value_{{ v.id }}" value="{{ v.value }}" style="width:180px">
+          </span>
+        {% else %}
+          <span class="text-muted small">No values yet.</span>
+        {% endfor %}
+        {% if f.values %}
+          <button type="submit" class="btn btn-sm btn-outline-primary">✓ Save</button>
+        {% endif %}
+        </form>
 
         <form method="POST" action="{{ url_for('admin.add_feature_value', feature_id=f.id) }}" class="d-flex gap-2 align-items-center">
           <input class="form-control form-control-sm" name="value" placeholder="e.g. Solar systems" style="max-width:240px" required>

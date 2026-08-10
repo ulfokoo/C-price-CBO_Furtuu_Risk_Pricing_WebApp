@@ -1131,6 +1131,20 @@ def edit_feature_value(value_id):
     return redirect(url_for("admin.eligibility_admin", product_id=v.feature.product_id))
 
 
+@admin_bp.route("/features/<int:feature_id>/values/save-all", methods=["POST"])
+@login_required
+@admin_required
+def edit_feature_values_bulk(feature_id):
+    f = ProductFeature.query.get_or_404(feature_id)
+    for v in f.values:
+        value = request.form.get(f"value_{v.id}", "").strip()
+        if value:
+            v.value = value
+    db.session.commit()
+    flash("Values updated.", "success")
+    return redirect(url_for("admin.eligibility_admin", product_id=f.product_id))
+
+
 @admin_bp.route("/feature-values/<int:value_id>/delete", methods=["POST"])
 @login_required
 @admin_required
