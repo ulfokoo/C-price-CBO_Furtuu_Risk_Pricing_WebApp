@@ -40,7 +40,15 @@
     {% for f in cat.features %}
       <tr>
         <td>{{ f.feature }}</td>
-        <td>{{ f.values | map(attribute='value') | join(', ') if f.values else f.value }}</td>
+        <td>
+          {% if f.values %}
+            {% for v in f.values %}
+              <div>{{ v.value }}</div>
+            {% endfor %}
+          {% else %}
+            {{ f.value }}
+          {% endif %}
+        </td>
       </tr>
     {% else %}
       <tr><td colspan="2" class="text-muted">No features in this category yet.</td></tr>
