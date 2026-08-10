@@ -1,4 +1,5 @@
 from functools import wraps
+import json
 
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_required, current_user
@@ -7,7 +8,8 @@ from app import db
 from app.models import (
     Product, ScoreCategory, SubParameter, ScoringOption, PricingInput,
     CostOfFundSource, RWAOption, RepaymentSchedule, OperationalCostComponent, PDGrade,
-    NGOSupportItem, NGOSupportTier, ProjectionScenario, EligibilityCriterion, ProductFeature,
+    NGOSupportItem, NGOSupportTier, ProjectionScenario, ProjectionExtraField,
+    EligibilityCriterion, ProductFeature,
 )
 from app import calculations as calc
 
@@ -791,6 +793,7 @@ def new_projection():
             year_label=year_label,
             display_order=len(product.projection_scenarios) + 1,
         )
+        
         db.session.add(sc)
         db.session.commit()
         flash(f"Projection '{crop_name}' created.", "success")
@@ -808,6 +811,14 @@ def projection_admin(product_id):
     return render_template("admin/projection.html", product=product, result=result)
 
 
+
+def _parse_extra_fields(form):
+    labels = form.getlist("extra_field_label[]")
+    values = form.getlist("extra_field_value[]")
+    return json.dumps([
+        {"label": l.strip(), "value": v.strip()}
+        for l, v in zip(labels, values) if l.strip()
+    ])
 @admin_bp.route("/products/<int:product_id>/projection/add", methods=["POST"])
 @login_required
 @admin_required
@@ -871,7 +882,55 @@ def delete_projection(scenario_id):
     name = sc.crop_name
     db.session.delete(sc)
     db.session.commit()
-    flash(f"Projection '{name}' deleted.", "info")
+    @admin_bp.route("/projection/<int:scenario_id>/extra-field/add", methods=["POST"])
+@login_required
+@admin_required
+def add_projection_extra_field(scenario_id):
+    sc = ProjectionScenario.query.get_or_404(scenario_id)
+    field_name = request.form.get("field_name", "").strip()
+    field_value = request.form.get("field_value", type=float)
+    if not field_name:
+        flash("Field name is required.", "danger")
+        return redirect(url_for("admin.projection_admin", product_id=sc.product_id))
+
+    ef = ProjectionExtraField(
+        scenario_id=sc.id,
+        field_name=field_name,
+        field_value=field_value if field_value is not None else 0.0,
+        display_order=len(sc.extra_fields) + 1,
+    )
+    db.session.add(ef)
+    db.session.commit()
+    flash(f"Field '{field_name}' added to {sc.crop_name}.", "success")
+    return redirect(url_for("admin.projection_admin", product_id=sc.product_id))
+
+
+@admin_bp.route("/projection/extra-field/<int:field_id>/edit", methods=["POST"])
+@login_required
+@admin_required
+def edit_projection_extra_field(field_id):
+    ef = ProjectionExtraField.query.get_or_404(field_id)
+    field_name = request.form.get("field_name", "").strip()
+    field_value = request.form.get("field_value", type=float)
+    if field_name:
+        ef.field_name = field_name
+    if field_value is not None:
+        ef.field_value = field_value
+    db.session.commit()
+    flash(f"Field '{ef.field_name}' updated.", "success")
+    return redirect(url_for("admin.projection_admin", product_id=ef.scenario.product_id))
+
+
+@admin_bp.route("/projection/extra-field/<int:field_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_projection_extra_field(field_id):
+    ef = ProjectionExtraField.query.get_or_404(field_id)
+    product_id = ef.scenario.product_id
+    name = ef.field_name
+    db.session.delete(ef)
+    db.session.commit()
+    flash(f"Field '{name}' removed.", "info")
     return redirect(url_for("admin.projection_admin", product_id=product_id))
 
 
@@ -925,7 +984,7 @@ def add_eligibility(product_id):
     product = Product.query.get_or_404(product_id)
     criterion = request.form.get("criterion", "").strip()
     requirement = request.form.get("requirement", "").strip()
-    if criterion and requirement:
+    if criterion:
         db.session.add(EligibilityCriterion(
             product_id=product.id, criterion=criterion, requirement=requirement,
             is_mandatory=bool(request.form.get("is_mandatory")),
@@ -933,6 +992,8 @@ def add_eligibility(product_id):
         ))
         db.session.commit()
         flash(f"Eligibility criterion '{criterion}' added.", "success")
+    else:
+        flash("Criterion name is required.", "danger")
     return redirect(url_for("admin.eligibility_admin", product_id=product_id))
 
 

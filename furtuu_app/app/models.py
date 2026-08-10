@@ -313,6 +313,32 @@ class ProjectionScenario(db.Model):
 
     display_order = db.Column(db.Integer, default=0)
 
+    extra_fields = db.relationship("ProjectionExtraField", backref="scenario",
+                                    cascade="all, delete-orphan",
+                                    order_by="ProjectionExtraField.display_order")
+
+
+class ProjectionExtraField(db.Model):
+    """A user-added custom label/value row on a projection card, e.g. an extra
+    cost or note that isn't one of the fixed workbook columns. Purely
+    informational — not part of the Portfolio/Profit/ROA calculation."""
+    __tablename__ = "projection_extra_fields"
+
+    id = db.Column(db.Integer, primary_key=True)
+    scenario_id = db.Column(db.Integer, db.ForeignKey("projection_scenarios.id"), nullable=False)
+    field_name = db.Column(db.String(120), nullable=False)
+    field_value = db.Column(db.Float, nullable=False, default=0.0)
+    display_order = db.Column(db.Integer, default=0)
+    extra_fields_json = db.Column(db.Text, default="[]")  # [{"label": "...", "value": "..."}, ...]
+
+    @property
+    def extra_fields(self):
+        import json
+        try:
+            return json.loads(self.extra_fields_json or "[]")
+        except (ValueError, TypeError):
+            return []
+
 
 # ---------------------------------------------------------------------------
 # Eligibility (who qualifies) + Product Features (loan terms/details)

@@ -26,7 +26,7 @@
 
     <form method="POST" action="{{ url_for('admin.add_eligibility', product_id=product.id) }}" class="d-flex gap-2 align-items-center mt-3">
       <input class="form-control form-control-sm" name="criterion" placeholder="e.g. Minimum farm size" style="max-width:260px" required>
-      <input class="form-control form-control-sm" name="requirement" placeholder="e.g. >= 0.5 hectare" style="max-width:260px" required>
+      <input class="form-control form-control-sm" name="requirement" placeholder="e.g. >= 0.5 hectare (optional)" style="max-width:260px">
       <div class="form-check form-check-inline">
         <input type="checkbox" class="form-check-input" name="is_mandatory" checked>
         <label class="form-check-label small">Mandatory</label>

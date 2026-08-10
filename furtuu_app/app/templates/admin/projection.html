@@ -17,7 +17,7 @@
     </form>
   </div>
   <div class="card-body">
-    <form method="POST" action="{{ url_for('admin.edit_projection', scenario_id=sc.id) }}" class="row g-2">
+    <form id="editform-{{ sc.id }}" method="POST" action="{{ url_for('admin.edit_projection', scenario_id=sc.id) }}" class="row g-2">
       <div class="col-md-3">
         <label class="form-label small">Crop / Segment Name</label>
         <input class="form-control form-control-sm" name="crop_name" value="{{ sc.crop_name }}" required>
@@ -78,10 +78,52 @@
         <label class="form-label small">Provision by Status %</label>
         <input class="form-control form-control-sm" type="number" step="0.01" name="provision_status_pct" value="{{ "%.2f"|format(sc.provision_status_pct*100) }}">
       </div>
-      <div class="col-md-2 d-flex align-items-end">
-        <button class="btn btn-sm btn-success w-100">Save</button>
-      </div>
     </form>
+
+    <hr class="my-3">
+
+    <div class="mb-2">
+      <div class="small fw-semibold text-muted mb-2">Custom Fields</div>
+
+      {% for ef in sc.extra_fields %}
+      <form method="POST" action="{{ url_for('admin.edit_projection_extra_field', field_id=ef.id) }}"
+            class="row g-2 align-items-end mb-2">
+        <div class="col-md-4">
+          <label class="form-label small">Field Name</label>
+          <input class="form-control form-control-sm" name="field_name" value="{{ ef.field_name }}" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small">Value</label>
+          <input class="form-control form-control-sm" type="number" step="any" name="field_value" value="{{ ef.field_value }}">
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-sm btn-outline-success w-100">Save</button>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-sm btn-outline-danger w-100"
+                  formaction="{{ url_for('admin.delete_projection_extra_field', field_id=ef.id) }}"
+                  onclick="return confirm('Delete the {{ ef.field_name }} field?');">Delete</button>
+        </div>
+      </form>
+      {% endfor %}
+
+      <form method="POST" action="{{ url_for('admin.add_projection_extra_field', scenario_id=sc.id) }}"
+            class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <input class="form-control form-control-sm" name="field_name" placeholder="New field name" required>
+        </div>
+        <div class="col-md-3">
+          <input class="form-control form-control-sm" type="number" step="any" name="field_value" placeholder="Value" value="0">
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-sm btn-outline-primary w-100">Add</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="d-flex justify-content-end mt-3">
+      <button type="submit" form="editform-{{ sc.id }}" class="btn btn-sm btn-success">Save</button>
+    </div>
 
     <table class="table table-sm mt-3 mb-0">
       <tbody>
