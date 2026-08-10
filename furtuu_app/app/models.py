@@ -74,6 +74,11 @@ class Product(db.Model):
                                         cascade="all, delete-orphan",
                                         order_by="ProductFeature.display_order")
 
+
+    feature_categories = db.relationship("ProductFeatureCategory", backref="product",
+                                          cascade="all, delete-orphan",
+                                          order_by="ProductFeatureCategory.display_order")
+
     def total_category_weight(self):
         return sum(c.weight_pct() for c in self.categories)
 
@@ -355,12 +360,27 @@ class EligibilityCriterion(db.Model):
     display_order = db.Column(db.Integer, default=0)
 
 
+class ProductFeatureCategory(db.Model):
+    """A group of related product features, e.g. 'Loan Terms', 'Repayment', 'Collateral'."""
+    __tablename__ = "product_feature_categories"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+    name = db.Column(db.String(200), nullable=False)
+    display_order = db.Column(db.Integer, default=0)
+
+    features = db.relationship("ProductFeature", backref="category",
+                                cascade="all, delete-orphan",
+                                order_by="ProductFeature.display_order")
+
+
 class ProductFeature(db.Model):
     """A loan feature/detail row, e.g. 'Loan Tenure' -> '4 - 12 months'."""
     __tablename__ = "product_features"
 
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey("product_feature_categories.id"), nullable=True)
     feature = db.Column(db.String(200), nullable=False)
     value = db.Column(db.String(300), nullable=False)
     display_order = db.Column(db.Integer, default=0)

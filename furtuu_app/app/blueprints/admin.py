@@ -9,7 +9,7 @@ from app.models import (
     Product, ScoreCategory, SubParameter, ScoringOption, PricingInput,
     CostOfFundSource, RWAOption, RepaymentSchedule, OperationalCostComponent, PDGrade,
     NGOSupportItem, NGOSupportTier, ProjectionScenario, ProjectionExtraField,
-    EligibilityCriterion, ProductFeature,
+    EligibilityCriterion, ProductFeature, ProductFeatureCategory,
 )
 from app import calculations as calc
 
@@ -1045,6 +1045,47 @@ def delete_eligibility(criterion_id):
     return redirect(url_for("admin.eligibility_admin", product_id=product_id))
 
 
+@admin_bp.route("/products/<int:product_id>/feature-categories/add", methods=["POST"])
+@login_required
+@admin_required
+def add_feature_category(product_id):
+    product = Product.query.get_or_404(product_id)
+    name = request.form.get("name", "").strip()
+    if name:
+        db.session.add(ProductFeatureCategory(
+            product_id=product.id, name=name,
+            display_order=len(product.feature_categories) + 1,
+        ))
+        db.session.commit()
+        flash(f"Category '{name}' added.", "success")
+    return redirect(url_for("admin.eligibility_admin", product_id=product_id))
+
+
+@admin_bp.route("/feature-categories/<int:category_id>/edit", methods=["POST"])
+@login_required
+@admin_required
+def edit_feature_category(category_id):
+    c = ProductFeatureCategory.query.get_or_404(category_id)
+    name = request.form.get("name", "").strip()
+    if name:
+        c.name = name
+        db.session.commit()
+        flash("Category updated.", "success")
+    return redirect(url_for("admin.eligibility_admin", product_id=c.product_id))
+
+
+@admin_bp.route("/feature-categories/<int:category_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_feature_category(category_id):
+    c = ProductFeatureCategory.query.get_or_404(category_id)
+    product_id = c.product_id
+    db.session.delete(c)
+    db.session.commit()
+    flash("Category and its features deleted.", "info")
+    return redirect(url_for("admin.eligibility_admin", product_id=product_id))
+
+
 @admin_bp.route("/products/<int:product_id>/features/add", methods=["POST"])
 @login_required
 @admin_required
@@ -1052,9 +1093,11 @@ def add_feature(product_id):
     product = Product.query.get_or_404(product_id)
     feature = request.form.get("feature", "").strip()
     value = request.form.get("value", "").strip()
-    if feature:
+    category_id = request.form.get("category_id", "").strip()
+    if feature and value:
         db.session.add(ProductFeature(
             product_id=product.id, feature=feature, value=value,
+            category_id=int(category_id) if category_id else None,
             display_order=len(product.product_features) + 1,
         ))
         db.session.commit()

@@ -37,6 +37,15 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        try:
+            from sqlalchemy import text
+            db.session.execute(text(
+                "ALTER TABLE product_features ADD COLUMN IF NOT EXISTS category_id INTEGER "
+                "REFERENCES product_feature_categories(id)"
+            ))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
         from app.seed import ensure_default_admin
         ensure_default_admin()
 
