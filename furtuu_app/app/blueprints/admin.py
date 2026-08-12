@@ -191,6 +191,52 @@ def _clone_product_structure(src, product):
             expected_access_fee_pct=src_pin.expected_access_fee_pct,
         ))
 
+    for item in src.ngo_support_items:
+        new_item = NGOSupportItem(
+            product_id=product.id, name=item.name, percent=item.percent,
+            max_price_impact_pct=item.max_price_impact_pct, is_active=item.is_active,
+            display_order=item.display_order,
+        )
+        db.session.add(new_item)
+        db.session.flush()
+        first_tier_id = None
+        for tier in item.tiers:
+            new_tier = NGOSupportTier(
+                item_id=new_item.id, label=tier.label, rate_reduction=tier.rate_reduction,
+                display_order=tier.display_order,
+            )
+            db.session.add(new_tier)
+            db.session.flush()
+            if item.selected_tier_id == tier.id:
+                first_tier_id = new_tier.id
+        if first_tier_id:
+            new_item.selected_tier_id = first_tier_id
+
+    for ec in src.eligibility_criteria:
+        db.session.add(EligibilityCriterion(
+            product_id=product.id, text=ec.text, display_order=ec.display_order,
+        ))
+
+    fcat_map = {}
+    for fcat in src.feature_categories:
+        new_fcat = ProductFeatureCategory(product_id=product.id, name=fcat.name,
+                                           display_order=fcat.display_order)
+        db.session.add(new_fcat)
+        db.session.flush()
+        fcat_map[fcat.id] = new_fcat
+
+    for feat in src.product_features:
+        new_feat = ProductFeature(
+            product_id=product.id, category_id=fcat_map.get(feat.category_id).id if feat.category_id in fcat_map else None,
+            name=feat.name, display_order=feat.display_order,
+        )
+        db.session.add(new_feat)
+        db.session.flush()
+        for val in feat.values:
+            db.session.add(ProductFeatureValue(
+                feature_id=new_feat.id, text=val.text, display_order=val.display_order,
+            ))
+
 
 @admin_bp.route("/products/<int:product_id>/edit", methods=["GET", "POST"])
 @login_required
