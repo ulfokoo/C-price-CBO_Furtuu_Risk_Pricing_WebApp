@@ -214,7 +214,8 @@ def _clone_product_structure(src, product):
 
     for ec in src.eligibility_criteria:
         db.session.add(EligibilityCriterion(
-            product_id=product.id, text=ec.text, display_order=ec.display_order,
+            product_id=product.id, criterion=ec.criterion, requirement=ec.requirement,
+            is_mandatory=ec.is_mandatory, display_order=ec.display_order,
         ))
 
     fcat_map = {}
@@ -228,13 +229,13 @@ def _clone_product_structure(src, product):
     for feat in src.product_features:
         new_feat = ProductFeature(
             product_id=product.id, category_id=fcat_map.get(feat.category_id).id if feat.category_id in fcat_map else None,
-            name=feat.name, display_order=feat.display_order,
+            feature=feat.feature, value=feat.value, display_order=feat.display_order,
         )
         db.session.add(new_feat)
         db.session.flush()
         for val in feat.values:
             db.session.add(ProductFeatureValue(
-                feature_id=new_feat.id, text=val.text, display_order=val.display_order,
+                feature_id=new_feat.id, value=val.value, display_order=val.display_order,
             ))
 
 
