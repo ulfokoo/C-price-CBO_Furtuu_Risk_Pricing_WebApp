@@ -20,7 +20,7 @@
       <tbody>
         <tr><td>Target Return on RWA ({{ "%.0f%%"|format(m.rwa*100) }} RWA — {{ m.rwa_label }})</td><td>{{ "%.3f%%"|format(m.target_return*100) }}</td><td>{{ "{:,.2f}".format(m.target_return_etb) }}</td></tr>
         <tr><td>Cost of Fund</td><td>{{ "%.3f%%"|format(m.cost_of_fund*100) }}</td><td>{{ "{:,.2f}".format(m.cost_of_fund_etb) }}</td></tr>
-        <tr><td>Risk Adjustment (Expected Credit Loss = PD×LGD×EAD)</td><td>{{ "%.3f%%"|format(m.expected_credit_loss*100) }}</td><td>{{ "{:,.2f}".format(m.risk_adj_etb) }}</td></tr>
+        <td>Credit Risk Premium {% if m.coverage_label %}(Coverage {{ m.coverage_label }}){% else %}(Expected Credit Loss = PD×LGD×EAD){% endif %}</td><td>{{ "%.3f%%"|format(m.expected_credit_loss*100) }}</td><td>{{ "{:,.2f}".format(m.risk_adj_etb) }}</td></tr>
         <tr><td>Operational Cost</td><td>{{ "%.3f%%"|format(m.op_cost*100) }}</td><td>{{ "{:,.2f}".format(m.op_cost_etb) }}</td></tr>
         <tr><td>Repayment/Tenure Charge ({{ m.tenure_label }})</td><td>{{ "%.3f%%"|format(m.tenure_rate*100) }}</td><td>{{ "{:,.2f}".format(m.tenure_charge_etb) }}</td></tr>
         <tr><td>Interest Rate (Annual) before NGO Support</td><td>{{ "%.3f%%"|format(m.interest_rate_annual_before_ngo*100) }}</td><td>{{ "{:,.2f}".format(m.interest_rate_annual_before_ngo * m.loan_amount) }}</td></tr>
@@ -87,8 +87,8 @@
           <td rowspan="{{ result.coverage_rows|length }}">{{ "%.2f%%"|format(m.tenure_rate*100) }}</td>
           <td rowspan="{{ result.coverage_rows|length }}">{{ "%.2f%%"|format(m.op_cost*100) }}</td>
           {% endif %}
-          {% for c in r.cells %}<td>{{ "%.3f%%"|format(c.credit_risk_premium*100) }}</td>{% endfor %}
-          {% for c in r.cells %}<td class="fw-bold">{{ "%.2f%%"|format(c.interest_rate_annual*100) }}</td>{% endfor %}
+          {% for c in r.cells %}<td class="{{ 'table-warning' if c.key == m.coverage_key }}">{{ "%.3f%%"|format(c.credit_risk_premium*100) }}</td>{% endfor %}
+          {% for c in r.cells %}<td class="fw-bold {{ 'table-warning' if c.key == m.coverage_key }}">{{ "%.2f%%"|format(c.interest_rate_annual*100) }}</td>{% endfor %}
         </tr>
       {% endfor %}
       </tbody>

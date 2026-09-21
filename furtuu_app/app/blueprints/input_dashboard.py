@@ -37,6 +37,7 @@ def input_dashboard():
         result=result,
         pricing_result=pricing_result,
         ngo_result=ngo_result,
+        coverage_tiers=calc.COVERAGE_TIERS,
     )
 
 
@@ -64,12 +65,14 @@ def submit_pricing_selection(product_id):
         rwa_id = request.form.get("rwa_option_id", type=int)
         repay_id = request.form.get("repayment_schedule_id", type=int)
         loan_amount = request.form.get("loan_amount", type=float)
+        coverage_key = request.form.get("coverage_tier", "")
         if rwa_id:
             pin.rwa_option_id = rwa_id
         if repay_id:
             pin.repayment_schedule_id = repay_id
         if loan_amount is not None:
             pin.loan_amount = loan_amount
+            pin.coverage_tier = coverage_key if calc.get_coverage_tier(coverage_key) else None
         db.session.commit()
         flash("Pricing selections updated.", "success")
     return redirect(url_for("input.input_dashboard", product_id=product.id))

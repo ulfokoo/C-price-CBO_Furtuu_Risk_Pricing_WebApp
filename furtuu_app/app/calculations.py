@@ -20,6 +20,9 @@ COVERAGE_TIERS = [
     {"key": "low",  "label": "0-49%",  "factor": 1.00},
 ]
 
+def get_coverage_tier(key):
+    return next((t for t in COVERAGE_TIERS if t["key"] == key), None)
+
 
 def compute_scorecard(product):
     """Mirrors 'Furtuu- Score card Weighted': category totals, total weighted
@@ -159,7 +162,11 @@ def compute_pricing(product):
     tenure_months = pin.repayment_schedule.tenure_months if pin.repayment_schedule else 12.0
 
     pd_value = scorecard["pd_value"] or 0.0
-    expected_credit_loss = pd_value * pin.loss_given_default * pin.exposure_at_default  # C19
+    coverage = get_coverage_tier(pin.coverage_tier)
+    if coverage:
+        expected_credit_loss = pd_value * pin.exposure_at_default * coverage["factor"]
+    else:
+        expected_credit_loss = pd_value * pin.loss_given_default * pin.exposure_at_default  # C19
 
     target_return = pin.target_return_on_rwa * rwa                       # C24
     target_return_etb = target_return * pin.loan_amount                  # D24
@@ -216,6 +223,8 @@ def compute_pricing(product):
         "ngo_total_pct": ngo["total_pct"],
         "ngo_effective_reduction_pct": ngo["effective_reduction_pct"],
         "grade": scorecard["grade"],
+        "coverage_key": coverage["key"] if coverage else None,
+        "coverage_label": coverage["label"] if coverage else None,
         "total_weighted_score": scorecard["total_weighted_score"],
     }
 
@@ -226,7 +235,10 @@ def compute_pricing(product):
     for row in pd_transform["rows"]:
         g = row["grade"]
         g_pd = row["adjusted_pd"]
-        credit_premium = g_pd * pin.loss_given_default * pin.exposure_at_default
+        if coverage:
+            credit_premium = g_pd * pin.exposure_at_default * coverage["factor"]
+        else:
+            credit_premium = g_pd * pin.loss_given_default * pin.exposure_at_default
         annual = target_return + cost_of_fund + credit_premium + tenure_rate + op_cost
         tenor = (annual * tenure_months) / 12.0
         annual_after_ngo = annual - ngo_reduction
@@ -258,6 +270,7 @@ def compute_pricing(product):
                 "label": t["label"],
                 "credit_risk_premium": premium,
                 "interest_rate_annual": coverage_base_rate + premium,
+                "key": t["key"],
             })
         coverage_rows.append({
             "grade_label": row["grade"].grade_label,

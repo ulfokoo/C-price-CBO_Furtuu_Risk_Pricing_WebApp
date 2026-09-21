@@ -57,6 +57,17 @@ def create_app():
         from app.seed import ensure_default_admin
         ensure_default_admin()
 
+                try:
+            from sqlalchemy import text
+            db.session.execute(text(
+                "ALTER TABLE pricing_inputs ADD COLUMN IF NOT EXISTS coverage_tier VARCHAR(20)"
+            ))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    
+
     @app.context_processor
     def inject_globals():
         from app.models import Product

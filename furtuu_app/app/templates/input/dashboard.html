@@ -69,11 +69,11 @@
   <div class="card-header cbo">Pricing Selections</div>
   <div class="card-body">
     <form method="POST" action="{{ url_for('input.submit_pricing_selection', product_id=product.id) }}" class="row g-3">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label">Loan Amount (ETB)</label>
         <input type="number" step="0.01" class="form-control" name="loan_amount" value="{{ product.pricing_input.loan_amount }}">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label">Risk Weight Category</label>
         <select class="form-select" name="rwa_option_id">
           {% for r in product.rwa_options %}
@@ -81,11 +81,20 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label">Repayment Schedule / Tenure</label>
         <select class="form-select" name="repayment_schedule_id">
           {% for r in product.repayment_schedules %}
             <option value="{{ r.id }}" {{ 'selected' if product.pricing_input.repayment_schedule_id==r.id }}>{{ r.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+            <div class="col-md-3">
+        <label class="form-label">Credit Risk Premium (Coverage)</label>
+        <select class="form-select" name="coverage_tier">
+          <option value="">— not set (PD × LGD) —</option>
+          {% for t in coverage_tiers %}
+            <option value="{{ t.key }}" {{ 'selected' if product.pricing_input.coverage_tier==t.key }}>Coverage {{ t.label }}</option>
           {% endfor %}
         </select>
       </div>
@@ -173,9 +182,10 @@
   <div class="card-header cbo">Resulting Interest Rate</div>
   <div class="card-body">
     <div class="row text-center">
-      <div class="col-md-4"><div class="fs-6 text-muted">Annual Rate</div><div class="fs-2 fw-bold text-success">{{ "%.2f%%"|format(m.interest_rate_annual*100) }}</div></div>
-      <div class="col-md-4"><div class="fs-6 text-muted">Tenor Rate ({{ m.tenure_months|round(0)|int }}m)</div><div class="fs-2 fw-bold text-success">{{ "%.2f%%"|format(m.interest_rate_tenor*100) }}</div></div>
-      <div class="col-md-4"><div class="fs-6 text-muted">Required Rate (after access fee)</div><div class="fs-2 fw-bold text-success">{{ "%.2f%%"|format(m.required_rate*100) }}</div></div>
+      <div class="col-md-3"><div class="fs-6 text-muted">Annual Rate</div><div class="fs-2 fw-bold text-success">{{ "%.2f%%"|format(m.interest_rate_annual*100) }}</div></div>
+      <div class="col-md-3"><div class="fs-6 text-muted">Tenor Rate ({{ m.tenure_months|round(0)|int }}m)</div><div class="fs-2 fw-bold text-success">{{ "%.2f%%"|format(m.interest_rate_tenor*100) }}</div></div>
+      <div class="col-md-3"><div class="fs-6 text-muted">Required Rate (after access fee)</div><div class="fs-2 fw-bold text-success">{{ "%.2f%%"|format(m.required_rate*100) }}</div></div>
+      <div class="col-md-3"><div class="fs-6 text-muted">Credit Risk Premium{% if m.coverage_label %} (Coverage {{ m.coverage_label }}){% endif %}</div><div class="fs-2 fw-bold text-success">{{ "%.2f%%"|format(m.expected_credit_loss*100) }}</div></div>
     </div>
   </div>
 </div>
