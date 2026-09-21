@@ -1,72 +1,86 @@
 {% extends "base.html" %}
-{% block title %}Edit {{ product.name }}{% endblock %}
+{% block title %}Credit Risk Premium — {{ product.name }}{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-2">
-  <h3><i class="bi bi-gear"></i> Admin — {{ product.name }}</h3>
-  <a href="{{ url_for('admin.products') }}" class="btn btn-sm btn-outline-secondary">Back</a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3><i class="bi bi-shield-check"></i> Credit Risk Premium — {{ product.name }}</h3>
+  <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">Back</a>
 </div>
 
-<div class="row g-3">
-  <div class="col-md-5">
-    <div class="card">
-      <div class="card-header cbo">Product Details</div>
-      <div class="card-body">
-        <form method="POST">
-          <div class="mb-3">
-            <label class="form-label">Name</label>
-            <input class="form-control" name="name" value="{{ product.name }}" required>
-            <div class="form-text">Renaming here updates the name everywhere this sector appears (all its dashboards), and never affects any other sector.</div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Description</label>
-            <textarea class="form-control" name="description" rows="2">{{ product.description or '' }}</textarea>
-          </div>
-          <button class="btn btn-success">Save</button>
-        </form>
-      </div>
-    </div>
+<datalist id="cr-suggestions">
+  <option value="Coverage">
+  <option value="Collateral">
+  <option value="Guarantee">
+  <option value="Other">
+</datalist>
 
-    <div class="card border-danger mt-3">
-      <div class="card-header bg-danger text-white">Danger Zone</div>
-      <div class="card-body">
-        <p class="form-text mb-2">Permanently deletes "{{ product.name }}" and everything under it — scorecard, pricing inputs, cost of fund, reference tables, PD grades, NGO support, projections, and eligibility data. This cannot be undone.</p>
-        <form method="POST" action="{{ url_for('admin.delete_product', product_id=product.id) }}" onsubmit="return confirm('Delete {{ product.name }} and ALL of its data? This cannot be undone.');">
-          <button class="btn btn-outline-danger">Delete this product</button>
-        </form>
-      </div>
-    </div>
+<p class="text-muted">
+  Each item below (for example <strong>Coverage</strong>) has a set of <strong>Ranges</strong> — the dropdown the loan officer picks from on the Input Dashboard.
+  Each range says what <strong>% of PD</strong> is charged as the Credit Risk Premium, e.g. "&ge;75%" = 25% of PD, "50-75%" = 50% of PD, "0-49%" = 100% of PD.
+  Add, edit, or delete ranges the same way you do for NGO Support.
+</p>
+<p class="small text-muted">
+  Credit Risk Premium = PD &times; EAD &times; the selected % of PD. With more than one active item, their selected percentages are multiplied.
+  If nothing is selected on the Input Dashboard, the old PD &times; LGD &times; EAD is used.
+</p>
+
+{% if not result.rows %}
+<div class="card mb-3">
+  <div class="card-body d-flex justify-content-between align-items-center">
+    <span>No Credit Risk Premium items yet.</span>
+    <form method="POST" action="{{ url_for('admin.load_credit_risk_defaults', product_id=product.id) }}">
+      <button class="btn btn-success">Load defaults (Coverage &ge;75% / 50-75% / 0-49%)</button>
+    </form>
   </div>
+</div>
+{% endif %}
 
-  <div class="col-md-7">
-    <div class="list-group">
-      <a class="list-group-item list-group-item-action" href="{{ url_for('admin.scorecard_builder', product_id=product.id) }}">
-        <i class="bi bi-clipboard-check me-2"></i><strong>Scorecard Builder</strong> — categories, sub-parameters, weights, scoring attributes
-      </a>
-      <a class="list-group-item list-group-item-action" href="{{ url_for('admin.pricing_inputs', product_id=product.id) }}">
-        <i class="bi bi-cash-coin me-2"></i><strong>Pricing Inputs</strong> — cost of capital, target ROE, LGD, EAD, access fee, loan amount
-      </a>
-      <a class="list-group-item list-group-item-action" href="{{ url_for('admin.cost_of_fund_admin', product_id=product.id) }}">
-        <i class="bi bi-piggy-bank me-2"></i><strong>Cost of Fund</strong> — funding sources, balances and rates
-      </a>
-      <a class="list-group-item list-group-item-action" href="{{ url_for('admin.reference_admin', product_id=product.id) }}">
-        <i class="bi bi-table me-2"></i><strong>Reference Tables</strong> — RWA mapping, repayment schedules, operational cost
-      </a>
-      <a class="list-group-item list-group-item-action" href="{{ url_for('admin.pd_grades_admin', product_id=product.id) }}">
-        <i class="bi bi-graph-up-arrow me-2"></i><strong>PD Grades</strong> — upper-bound PD and agri/digital stress per grade
-      </a>
-      <a class="list-group-item list-group-item-action" href="{{ url_for('admin.ngo_support_admin', product_id=product.id) }}">
-        <i class="bi bi-heart-fill me-2"></i><strong>NGO Support</strong> — add/edit/delete items and set the max price impact cap
-      </a>
-      <a class="list-group-item list-group-item-action" href="{{ url_for('admin.credit_risk_admin', product_id=product.id) }}">
-        <i class="bi bi-shield-check me-2"></i><strong>Credit Risk Premium</strong> — add/edit/delete coverage ranges and the % of PD charged
-      </a>
-      <a class="list-group-item list-group-item-action" href="{{ url_for('admin.projection_admin', product_id=product.id) }}">
-        <i class="bi bi-bar-chart-line me-2"></i><strong>Projection</strong> — add crop/segment volume & profit projections (Wheat, Barley, ...)
-      </a>
-      <a class="list-group-item list-group-item-action" href="{{ url_for('admin.eligibility_admin', product_id=product.id) }}">
-        <i class="bi bi-check2-square me-2"></i><strong>Eligibility</strong> — qualifying criteria and product features
-      </a>
+{% for item in result.rows %}
+<div class="card mb-3">
+  <div class="card-header cbo d-flex justify-content-between align-items-center">
+    <form method="POST" action="{{ url_for('admin.edit_credit_risk_item', item_id=item.id) }}" class="d-flex gap-2 flex-grow-1 me-2 align-items-center">
+      <input class="form-control form-control-sm" name="name" list="cr-suggestions" value="{{ item.name }}" style="max-width:260px">
+      <div class="form-check form-check-inline ms-2">
+        <input type="checkbox" class="form-check-input" name="is_active" {{ 'checked' if item.is_active }}>
+        <label class="form-check-label text-white small">Active</label>
+      </div>
+      <button class="btn btn-sm btn-light">Save</button>
+    </form>
+    <form method="POST" action="{{ url_for('admin.delete_credit_risk_item', item_id=item.id) }}" onsubmit="return confirm('Delete this Credit Risk Premium item and all its ranges?');">
+      <button class="btn btn-sm btn-outline-light">Delete Item</button>
+    </form>
+  </div>
+  <div class="card-body">
+    <strong class="small text-muted">Ranges (dropdown options the loan officer picks from):</strong>
+    <div class="d-flex flex-wrap gap-2 my-2">
+    {% for rng in item.ranges %}
+      <form method="POST" action="{{ url_for('admin.edit_credit_risk_range', range_id=rng.id) }}" class="d-flex gap-1 align-items-center border rounded p-1 bg-light">
+        <input class="form-control form-control-sm" name="label" value="{{ rng.label }}" style="width:120px" title="Range label shown in the dropdown, e.g. '50-75%'">
+        <input class="form-control form-control-sm" type="number" step="0.01" name="pd_share" value="{{ "%.2f"|format(rng.pd_share*100) }}" style="width:90px" title="% of PD charged as Credit Risk Premium for this range, e.g. 25">
+        <span>% of PD</span>
+        <button class="btn btn-sm btn-outline-primary">✓</button>
+        <button type="submit" formaction="{{ url_for('admin.delete_credit_risk_range', range_id=rng.id) }}" formnovalidate class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this range?');">✕</button>
+      </form>
+    {% else %}
+      <span class="text-muted small">No ranges yet — add one below.</span>
+    {% endfor %}
     </div>
+    <form method="POST" action="{{ url_for('admin.add_credit_risk_range', item_id=item.id) }}" class="d-flex gap-1">
+      <input class="form-control form-control-sm" name="label" placeholder="New range label, e.g. 50-75%" style="width:220px" required>
+      <input class="form-control form-control-sm" type="number" step="0.01" name="pd_share" placeholder="% of PD, e.g. 50" style="width:160px" required>
+      <button class="btn btn-sm btn-success">Add Range</button>
+    </form>
+  </div>
+</div>
+{% endfor %}
+
+<div class="card mt-3">
+  <div class="card-header cbo">Add Credit Risk Premium Item</div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('admin.add_credit_risk_item', product_id=product.id) }}" class="row g-2">
+      <div class="col-md-8"><input class="form-control" name="name" list="cr-suggestions" placeholder="e.g. Coverage" required></div>
+      <div class="col-md-2"><button class="btn btn-success w-100">Add</button></div>
+    </form>
+    <div class="form-text">After adding, use "Add Range" on the new item's card to give it its dropdown ranges.</div>
   </div>
 </div>
 {% endblock %}
