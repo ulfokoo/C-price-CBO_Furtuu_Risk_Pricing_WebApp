@@ -20,7 +20,7 @@
       <tbody>
         <tr><td>Target Return on RWA ({{ "%.0f%%"|format(m.rwa*100) }} RWA — {{ m.rwa_label }})</td><td>{{ "%.3f%%"|format(m.target_return*100) }}</td><td>{{ "{:,.2f}".format(m.target_return_etb) }}</td></tr>
         <tr><td>Cost of Fund</td><td>{{ "%.3f%%"|format(m.cost_of_fund*100) }}</td><td>{{ "{:,.2f}".format(m.cost_of_fund_etb) }}</td></tr>
-        <td>Credit Risk Premium {% if m.coverage_label %}(Coverage {{ m.coverage_label }}){% else %}(Expected Credit Loss = PD×LGD×EAD){% endif %}</td><td>{{ "%.3f%%"|format(m.expected_credit_loss*100) }}</td><td>{{ "{:,.2f}".format(m.risk_adj_etb) }}</td></tr>
+        <tr><td>Credit Risk Premium {% if m.credit_risk_factor is not none %}({{ m.credit_risk_summary }} — {{ "%.0f%%"|format(m.credit_risk_factor*100) }} of PD){% else %}(Expected Credit Loss = PD×LGD×EAD){% endif %}</td><td>{{ "%.3f%%"|format(m.expected_credit_loss*100) }}</td><td>{{ "{:,.2f}".format(m.risk_adj_etb) }}</td></tr>
         <tr><td>Operational Cost</td><td>{{ "%.3f%%"|format(m.op_cost*100) }}</td><td>{{ "{:,.2f}".format(m.op_cost_etb) }}</td></tr>
         <tr><td>Repayment/Tenure Charge ({{ m.tenure_label }})</td><td>{{ "%.3f%%"|format(m.tenure_rate*100) }}</td><td>{{ "{:,.2f}".format(m.tenure_charge_etb) }}</td></tr>
         <tr><td>Interest Rate (Annual) before NGO Support</td><td>{{ "%.3f%%"|format(m.interest_rate_annual_before_ngo*100) }}</td><td>{{ "{:,.2f}".format(m.interest_rate_annual_before_ngo * m.loan_amount) }}</td></tr>
@@ -53,49 +53,6 @@
       {% endfor %}
       </tbody>
     </table>
-  </div>
-</div>
-
-<div class="card mb-3">
-  <div class="card-header cbo">Price Across Bankable Risk Grade — by Coverage (Credit Risk Premium)</div>
-  <div class="table-responsive">
-    <table class="table table-sm table-bordered text-center align-middle mb-0">
-      <thead style="--bs-table-bg: var(--cbo-green); --bs-table-color: #fff;">
-        <tr>
-          <th rowspan="2">Risk Grade</th>
-          <th rowspan="2">PD</th>
-          <th rowspan="2">Target Return</th>
-          <th rowspan="2">Cost of Fund</th>
-          <th rowspan="2">Tenure Charge</th>
-          <th rowspan="2">Op. Cost</th>
-          <th colspan="{{ result.coverage_tiers|length }}">Credit Risk Premium</th>
-          <th colspan="{{ result.coverage_tiers|length }}">Interest Rate (Annual)</th>
-        </tr>
-        <tr>
-          {% for t in result.coverage_tiers %}<th>Coverage<br>{{ t.label }}</th>{% endfor %}
-          {% for t in result.coverage_tiers %}<th>Coverage<br>{{ t.label }}</th>{% endfor %}
-        </tr>
-      </thead>
-      <tbody>
-      {% for r in result.coverage_rows %}
-        <tr>
-          <td><span class="badge badge-{{ r.grade_label|lower|replace(' ','') }}">{{ r.grade_label }}</span></td>
-          <td>{{ "%.2f%%"|format(r.pd*100) }}</td>
-          {% if loop.first %}
-          <td rowspan="{{ result.coverage_rows|length }}">{{ "%.2f%%"|format(m.target_return*100) }}</td>
-          <td rowspan="{{ result.coverage_rows|length }}">{{ "%.2f%%"|format(m.cost_of_fund*100) }}</td>
-          <td rowspan="{{ result.coverage_rows|length }}">{{ "%.2f%%"|format(m.tenure_rate*100) }}</td>
-          <td rowspan="{{ result.coverage_rows|length }}">{{ "%.2f%%"|format(m.op_cost*100) }}</td>
-          {% endif %}
-          {% for c in r.cells %}<td class="{{ 'table-warning' if c.key == m.coverage_key }}">{{ "%.3f%%"|format(c.credit_risk_premium*100) }}</td>{% endfor %}
-          {% for c in r.cells %}<td class="fw-bold {{ 'table-warning' if c.key == m.coverage_key }}">{{ "%.2f%%"|format(c.interest_rate_annual*100) }}</td>{% endfor %}
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  <div class="card-footer small text-muted">
-    Credit Risk Premium = PD × EAD × coverage factor. Interest Rate = Target Return + Cost of Fund + Tenure Charge + Op. Cost + Credit Risk Premium (before NGO support).
   </div>
 </div>
 {% endblock %}

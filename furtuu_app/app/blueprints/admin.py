@@ -212,6 +212,22 @@ def _clone_product_structure(src, product):
         if first_tier_id:
             new_item.selected_tier_id = first_tier_id
 
+    from app.models import CreditRiskItem, CreditRiskRange
+    for cr_item in src.credit_risk_items:
+        new_cr = CreditRiskItem(product_id=product.id, name=cr_item.name,
+                                is_active=cr_item.is_active, display_order=cr_item.display_order)
+        db.session.add(new_cr)
+        db.session.flush()
+        chosen_id = None
+        for rng in cr_item.ranges:
+            new_rng = CreditRiskRange(item_id=new_cr.id, label=rng.label,
+                                      pd_share=rng.pd_share, display_order=rng.display_order)
+            db.session.add(new_rng)
+            db.session.flush()
+            if cr_item.selected_range_id == rng.id:
+                chosen_id = new_rng.id
+        new_cr.selected_range_id = chosen_id
+
     for ec in src.eligibility_criteria:
         db.session.add(EligibilityCriterion(
             product_id=product.id, criterion=ec.criterion, requirement=ec.requirement,
@@ -1370,3 +1386,122 @@ def delete_feature(feature_id):
     db.session.commit()
     flash("Feature deleted.", "info")
     return redirect(url_for("admin.eligibility_admin", product_id=product_id))
+
+
+# ---------------------------------------------------------------------------
+# Credit Risk Premium (managed like NGO Support: items -> ranges)
+# ---------------------------------------------------------------------------
+from app.models import CreditRiskItem, CreditRiskRange  # noqa: E402
+
+
+@admin_bp.route("/products/<int:product_id>/credit-risk", methods=["GET"])
+@login_required
+@admin_required
+def credit_risk_admin(product_id):
+    product = Product.query.get_or_404(product_id)
+    result = calc.compute_credit_risk(product)
+    return render_template("admin/credit_risk.html", product=product, result=result)
+
+
+@admin_bp.route("/products/<int:product_id>/credit-risk/add-item", methods=["POST"])
+@login_required
+@admin_required
+def add_credit_risk_item(product_id):
+    product = Product.query.get_or_404(product_id)
+    name = request.form.get("name", "").strip()
+    if name:
+        db.session.add(CreditRiskItem(product_id=product.id, name=name,
+                                      display_order=len(product.credit_risk_items) + 1))
+        db.session.commit()
+        flash(f"Credit Risk Premium item '{name}' added. Now add its ranges.", "success")
+    return redirect(url_for("admin.credit_risk_admin", product_id=product.id))
+
+
+@admin_bp.route("/products/<int:product_id>/credit-risk/load-defaults", methods=["POST"])
+@login_required
+@admin_required
+def load_credit_risk_defaults(product_id):
+    """One-click Excel defaults: Coverage >=75% / 50-75% / 0-49% -> 25% / 50% / 100% of PD."""
+    product = Product.query.get_or_404(product_id)
+    if not product.credit_risk_items:
+        item = CreditRiskItem(product_id=product.id, name="Coverage", display_order=1)
+        db.session.add(item)
+        db.session.flush()
+        for i, (label, share) in enumerate([("\u226575%", 0.25), ("50-75%", 0.50), ("0-49%", 1.00)], start=1):
+            db.session.add(CreditRiskRange(item_id=item.id, label=label, pd_share=share, display_order=i))
+        db.session.commit()
+        flash("Default Coverage ranges loaded.", "success")
+    return redirect(url_for("admin.credit_risk_admin", product_id=product.id))
+
+
+@admin_bp.route("/credit-risk-items/<int:item_id>/edit", methods=["POST"])
+@login_required
+@admin_required
+def edit_credit_risk_item(item_id):
+    item = CreditRiskItem.query.get_or_404(item_id)
+    name = request.form.get("name", "").strip()
+    if name:
+        item.name = name
+    item.is_active = bool(request.form.get("is_active"))
+    db.session.commit()
+    flash("Credit Risk Premium item updated.", "success")
+    return redirect(url_for("admin.credit_risk_admin", product_id=item.product_id))
+
+
+@admin_bp.route("/credit-risk-items/<int:item_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_credit_risk_item(item_id):
+    item = CreditRiskItem.query.get_or_404(item_id)
+    product_id = item.product_id
+    db.session.delete(item)
+    db.session.commit()
+    flash("Credit Risk Premium item deleted.", "info")
+    return redirect(url_for("admin.credit_risk_admin", product_id=product_id))
+
+
+@admin_bp.route("/credit-risk-items/<int:item_id>/ranges/add", methods=["POST"])
+@login_required
+@admin_required
+def add_credit_risk_range(item_id):
+    item = CreditRiskItem.query.get_or_404(item_id)
+    label = request.form.get("label", "").strip()
+    pd_share = request.form.get("pd_share", type=float)
+    if label and pd_share is not None:
+        db.session.add(CreditRiskRange(item_id=item.id, label=label, pd_share=pd_share / 100.0,
+                                       display_order=len(item.ranges) + 1))
+        db.session.commit()
+        flash(f"Range '{label}' added to {item.name}.", "success")
+    return redirect(url_for("admin.credit_risk_admin", product_id=item.product_id))
+
+
+@admin_bp.route("/credit-risk-ranges/<int:range_id>/edit", methods=["POST"])
+@login_required
+@admin_required
+def edit_credit_risk_range(range_id):
+    rng = CreditRiskRange.query.get_or_404(range_id)
+    item = CreditRiskItem.query.get_or_404(rng.item_id)
+    label = request.form.get("label", "").strip()
+    pd_share = request.form.get("pd_share", type=float)
+    if label:
+        rng.label = label
+    if pd_share is not None:
+        rng.pd_share = pd_share / 100.0
+    db.session.commit()
+    flash("Range updated.", "success")
+    return redirect(url_for("admin.credit_risk_admin", product_id=item.product_id))
+
+
+@admin_bp.route("/credit-risk-ranges/<int:range_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_credit_risk_range(range_id):
+    rng = CreditRiskRange.query.get_or_404(range_id)
+    item = CreditRiskItem.query.get_or_404(rng.item_id)
+    product_id = item.product_id
+    if item.selected_range_id == rng.id:
+        item.selected_range_id = None
+    db.session.delete(rng)
+    db.session.commit()
+    flash("Range deleted.", "info")
+    return redirect(url_for("admin.credit_risk_admin", product_id=product_id))

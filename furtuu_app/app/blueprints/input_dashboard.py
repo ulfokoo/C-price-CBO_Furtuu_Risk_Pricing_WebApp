@@ -17,16 +17,19 @@ def input_dashboard():
     result = None
     pricing_result = None
     ngo_result = None
+    credit_risk_result = None
     if product_id:
         product = Product.query.get_or_404(product_id)
         result = calc.compute_scorecard(product)
         ngo_result = calc.compute_ngo_support(product)
+        credit_risk_result = calc.compute_credit_risk(product)
         if product.pricing_input:
             pricing_result = calc.compute_pricing(product)
     elif products:
         product = products[0]
         result = calc.compute_scorecard(product)
         ngo_result = calc.compute_ngo_support(product)
+        credit_risk_result = calc.compute_credit_risk(product)
         if product.pricing_input:
             pricing_result = calc.compute_pricing(product)
 
@@ -37,7 +40,7 @@ def input_dashboard():
         result=result,
         pricing_result=pricing_result,
         ngo_result=ngo_result,
-        coverage_tiers=calc.COVERAGE_TIERS,
+        credit_risk_result=credit_risk_result,
     )
 
 
@@ -65,14 +68,25 @@ def submit_pricing_selection(product_id):
         rwa_id = request.form.get("rwa_option_id", type=int)
         repay_id = request.form.get("repayment_schedule_id", type=int)
         loan_amount = request.form.get("loan_amount", type=float)
-        coverage_key = request.form.get("coverage_tier", "")
         if rwa_id:
             pin.rwa_option_id = rwa_id
         if repay_id:
             pin.repayment_schedule_id = repay_id
         if loan_amount is not None:
             pin.loan_amount = loan_amount
-            pin.coverage_tier = coverage_key if calc.get_coverage_tier(coverage_key) else None
         db.session.commit()
         flash("Pricing selections updated.", "success")
+    return redirect(url_for("input.input_dashboard", product_id=product.id))
+
+
+@input_bp.route("/input/<int:product_id>/credit-risk-selection", methods=["POST"])
+@login_required
+def save_credit_risk_selection(product_id):
+    product = Product.query.get_or_404(product_id)
+    for item in product.credit_risk_items:
+        range_id = request.form.get(f"range_{item.id}", type=int)
+        valid_ids = {r.id for r in item.ranges}
+        item.selected_range_id = range_id if range_id in valid_ids else None
+    db.session.commit()
+    flash("Credit Risk Premium selections updated.", "success")
     return redirect(url_for("input.input_dashboard", product_id=product.id))

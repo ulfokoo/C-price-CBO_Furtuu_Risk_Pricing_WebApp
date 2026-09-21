@@ -13,16 +13,6 @@ dict/number results. Nothing here mutates the database.
 
 NGO_MAX_PRICE_IMPACT_PCT = 0.0655  # 100% NGO allocation = max 6.55% price reduction
 
-# Coverage bands and the share of PD charged as Credit Risk Premium
-COVERAGE_TIERS = [
-    {"key": "high", "label": "≥75%",   "factor": 0.25},
-    {"key": "mid",  "label": "50-75%", "factor": 0.50},
-    {"key": "low",  "label": "0-49%",  "factor": 1.00},
-]
-
-def get_coverage_tier(key):
-    return next((t for t in COVERAGE_TIERS if t["key"] == key), None)
-
 
 def compute_scorecard(product):
     """Mirrors 'Furtuu- Score card Weighted': category totals, total weighted
@@ -110,6 +100,29 @@ def compute_ngo_support(product):
     }
 
 
+def compute_credit_risk(product):
+    """Credit Risk Premium selection (managed like NGO Support).
+    Each active item has a selected range that says what share of PD is
+    charged. With several items the selected shares are multiplied.
+    factor is None when nothing is selected (pricing then falls back to the
+    old PD x LGD x EAD)."""
+    rows = list(product.credit_risk_items)
+    factor = 1.0
+    picked = []
+    for it in rows:
+        if not it.is_active:
+            continue
+        rng = it.selected_range
+        if rng:
+            factor *= rng.pd_share
+            picked.append(f"{it.name}: {rng.label}")
+    return {
+        "rows": rows,
+        "factor": factor if picked else None,
+        "summary": "; ".join(picked),
+    }
+
+
 def compute_cost_of_fund(product):
     """Mirrors 'Cost of Fund': weighted average cost of funding across all
     funding sources = SUM(Annual Int Expense) / SUM(Balance)."""
@@ -162,9 +175,13 @@ def compute_pricing(product):
     tenure_months = pin.repayment_schedule.tenure_months if pin.repayment_schedule else 12.0
 
     pd_value = scorecard["pd_value"] or 0.0
-    coverage = get_coverage_tier(pin.coverage_tier)
-    if coverage:
-        expected_credit_loss = pd_value * pin.exposure_at_default * coverage["factor"]
+    # Credit Risk Premium: driven by the ranges picked on the Input Dashboard
+    # (Manage > Credit Risk Premium). If nothing is picked, fall back to the
+    # old PD x LGD x EAD.
+    credit = compute_credit_risk(product)
+    credit_factor = credit["factor"]
+    if credit_factor is not None:
+        expected_credit_loss = pd_value * pin.exposure_at_default * credit_factor
     else:
         expected_credit_loss = pd_value * pin.loss_given_default * pin.exposure_at_default  # C19
 
@@ -223,8 +240,8 @@ def compute_pricing(product):
         "ngo_total_pct": ngo["total_pct"],
         "ngo_effective_reduction_pct": ngo["effective_reduction_pct"],
         "grade": scorecard["grade"],
-        "coverage_key": coverage["key"] if coverage else None,
-        "coverage_label": coverage["label"] if coverage else None,
+        "credit_risk_factor": credit_factor,
+        "credit_risk_summary": credit["summary"],
         "total_weighted_score": scorecard["total_weighted_score"],
     }
 
@@ -235,8 +252,8 @@ def compute_pricing(product):
     for row in pd_transform["rows"]:
         g = row["grade"]
         g_pd = row["adjusted_pd"]
-        if coverage:
-            credit_premium = g_pd * pin.exposure_at_default * coverage["factor"]
+        if credit_factor is not None:
+            credit_premium = g_pd * pin.exposure_at_default * credit_factor
         else:
             credit_premium = g_pd * pin.loss_given_default * pin.exposure_at_default
         annual = target_return + cost_of_fund + credit_premium + tenure_rate + op_cost
@@ -258,32 +275,7 @@ def compute_pricing(product):
             "interest_rate_tenor_after_ngo": tenor_after_ngo,
         })
 
-    # Credit Risk Premium by coverage band (Excel-style table)
-    coverage_base_rate = target_return + cost_of_fund + tenure_rate + op_cost
-    coverage_rows = []
-    for row in pd_transform["rows"]:
-        g_pd = row["adjusted_pd"]
-        cells = []
-        for t in COVERAGE_TIERS:
-            premium = g_pd * pin.exposure_at_default * t["factor"]
-            cells.append({
-                "label": t["label"],
-                "credit_risk_premium": premium,
-                "interest_rate_annual": coverage_base_rate + premium,
-                "key": t["key"],
-            })
-        coverage_rows.append({
-            "grade_label": row["grade"].grade_label,
-            "pd": g_pd,
-            "cells": cells,
-        })
-
-    return {
-        "main": main_scenario,
-        "grade_rows": grade_rows,
-        "coverage_tiers": COVERAGE_TIERS,
-        "coverage_rows": coverage_rows,
-    }
+    return {"main": main_scenario, "grade_rows": grade_rows}
 
 
 # ---------------------------------------------------------------------------
@@ -369,4 +361,3 @@ def compute_projection_summary(product):
         "total_farmers": total_farmers,
         "blended_roa": blended_roa,
     }
-

@@ -230,6 +230,47 @@ class NGOSupportTier(db.Model):
     label = db.Column(db.String(50), nullable=False)              # '>50%', '40%-50%', '0%'
     rate_reduction = db.Column(db.Float, nullable=False, default=0.0)  # fraction, e.g. 0.028 = 2.8%
     display_order = db.Column(db.Integer, default=0)
+
+
+# ---------------------------------------------------------------------------
+# Credit Risk Premium (managed exactly like NGO Support: items -> ranges,
+# the loan officer picks one range per item on the Input Dashboard).
+# Each range says what share of PD is charged as premium, e.g. Coverage
+# ">=75%" -> 25% of PD, "50-75%" -> 50% of PD, "0-49%" -> 100% of PD.
+# ---------------------------------------------------------------------------
+class CreditRiskItem(db.Model):
+    __tablename__ = "credit_risk_items"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+    name = db.Column(db.String(200), nullable=False)               # e.g. 'Coverage'
+    is_active = db.Column(db.Boolean, default=True)
+    display_order = db.Column(db.Integer, default=0)
+    selected_range_id = db.Column(db.Integer, nullable=True)       # id of the chosen CreditRiskRange (plain id, no FK)
+
+    product = db.relationship(
+        "Product",
+        backref=db.backref("credit_risk_items", cascade="all, delete-orphan",
+                            order_by="CreditRiskItem.display_order"),
+    )
+    ranges = db.relationship("CreditRiskRange", cascade="all, delete-orphan",
+                              order_by="CreditRiskRange.display_order")
+
+    @property
+    def selected_range(self):
+        return next((r for r in self.ranges if r.id == self.selected_range_id), None)
+
+
+class CreditRiskRange(db.Model):
+    __tablename__ = "credit_risk_ranges"
+
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey("credit_risk_items.id"), nullable=False)
+    label = db.Column(db.String(50), nullable=False)               # '>=75%', '50-75%', '0-49%'
+    pd_share = db.Column(db.Float, nullable=False, default=1.0)    # fraction of PD charged, e.g. 0.25 = 25% of PD
+    display_order = db.Column(db.Integer, default=0)
+
+
 # ---------------------------------------------------------------------------
 # Cost of Fund sheet
 # ---------------------------------------------------------------------------
@@ -305,7 +346,6 @@ class PricingInput(db.Model):
 
     repayment_schedule_id = db.Column(db.Integer, db.ForeignKey("repayment_schedules.id"))  # E28
     expected_access_fee_pct = db.Column(db.Float, default=0.035)   # C31
-    coverage_tier = db.Column(db.String(20), nullable=True)        # "high" / "mid" / "low" (Credit Risk Premium coverage band)
 
     rwa_option = db.relationship("RWAOption", foreign_keys=[rwa_option_id])
     repayment_schedule = db.relationship("RepaymentSchedule", foreign_keys=[repayment_schedule_id])
