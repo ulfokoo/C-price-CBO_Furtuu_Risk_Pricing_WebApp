@@ -305,7 +305,7 @@ class PricingInput(db.Model):
 
     repayment_schedule_id = db.Column(db.Integer, db.ForeignKey("repayment_schedules.id"))  # E28
     expected_access_fee_pct = db.Column(db.Float, default=0.035)   # C31
-        coverage_tier = db.Column(db.String(20), nullable=True)   # "high" / "mid" / "low"
+    coverage_tier = db.Column(db.String(20), nullable=True)        # "high" / "mid" / "low" (Credit Risk Premium coverage band)
 
     rwa_option = db.relationship("RWAOption", foreign_keys=[rwa_option_id])
     repayment_schedule = db.relationship("RepaymentSchedule", foreign_keys=[repayment_schedule_id])
