@@ -13,6 +13,13 @@ dict/number results. Nothing here mutates the database.
 
 NGO_MAX_PRICE_IMPACT_PCT = 0.0655  # 100% NGO allocation = max 6.55% price reduction
 
+# Coverage bands and the share of PD charged as Credit Risk Premium
+COVERAGE_TIERS = [
+    {"key": "high", "label": "≥75%",   "factor": 0.25},
+    {"key": "mid",  "label": "50-75%", "factor": 0.50},
+    {"key": "low",  "label": "0-49%",  "factor": 1.00},
+]
+
 
 def compute_scorecard(product):
     """Mirrors 'Furtuu- Score card Weighted': category totals, total weighted
@@ -239,7 +246,31 @@ def compute_pricing(product):
             "interest_rate_tenor_after_ngo": tenor_after_ngo,
         })
 
-    return {"main": main_scenario, "grade_rows": grade_rows}
+    # Credit Risk Premium by coverage band (Excel-style table)
+    coverage_base_rate = target_return + cost_of_fund + tenure_rate + op_cost
+    coverage_rows = []
+    for row in pd_transform["rows"]:
+        g_pd = row["adjusted_pd"]
+        cells = []
+        for t in COVERAGE_TIERS:
+            premium = g_pd * pin.exposure_at_default * t["factor"]
+            cells.append({
+                "label": t["label"],
+                "credit_risk_premium": premium,
+                "interest_rate_annual": coverage_base_rate + premium,
+            })
+        coverage_rows.append({
+            "grade_label": row["grade"].grade_label,
+            "pd": g_pd,
+            "cells": cells,
+        })
+
+    return {
+        "main": main_scenario,
+        "grade_rows": grade_rows,
+        "coverage_tiers": COVERAGE_TIERS,
+        "coverage_rows": coverage_rows,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -325,3 +356,4 @@ def compute_projection_summary(product):
         "total_farmers": total_farmers,
         "blended_roa": blended_roa,
     }
+

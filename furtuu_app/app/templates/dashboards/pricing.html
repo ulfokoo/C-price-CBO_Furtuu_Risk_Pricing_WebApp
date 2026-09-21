@@ -55,4 +55,47 @@
     </table>
   </div>
 </div>
+
+<div class="card mb-3">
+  <div class="card-header cbo">Price Across Bankable Risk Grade — by Coverage (Credit Risk Premium)</div>
+  <div class="table-responsive">
+    <table class="table table-sm table-bordered text-center align-middle mb-0">
+      <thead style="--bs-table-bg: var(--cbo-green); --bs-table-color: #fff;">
+        <tr>
+          <th rowspan="2">Risk Grade</th>
+          <th rowspan="2">PD</th>
+          <th rowspan="2">Target Return</th>
+          <th rowspan="2">Cost of Fund</th>
+          <th rowspan="2">Tenure Charge</th>
+          <th rowspan="2">Op. Cost</th>
+          <th colspan="{{ result.coverage_tiers|length }}">Credit Risk Premium</th>
+          <th colspan="{{ result.coverage_tiers|length }}">Interest Rate (Annual)</th>
+        </tr>
+        <tr>
+          {% for t in result.coverage_tiers %}<th>Coverage<br>{{ t.label }}</th>{% endfor %}
+          {% for t in result.coverage_tiers %}<th>Coverage<br>{{ t.label }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in result.coverage_rows %}
+        <tr>
+          <td><span class="badge badge-{{ r.grade_label|lower|replace(' ','') }}">{{ r.grade_label }}</span></td>
+          <td>{{ "%.2f%%"|format(r.pd*100) }}</td>
+          {% if loop.first %}
+          <td rowspan="{{ result.coverage_rows|length }}">{{ "%.2f%%"|format(m.target_return*100) }}</td>
+          <td rowspan="{{ result.coverage_rows|length }}">{{ "%.2f%%"|format(m.cost_of_fund*100) }}</td>
+          <td rowspan="{{ result.coverage_rows|length }}">{{ "%.2f%%"|format(m.tenure_rate*100) }}</td>
+          <td rowspan="{{ result.coverage_rows|length }}">{{ "%.2f%%"|format(m.op_cost*100) }}</td>
+          {% endif %}
+          {% for c in r.cells %}<td>{{ "%.3f%%"|format(c.credit_risk_premium*100) }}</td>{% endfor %}
+          {% for c in r.cells %}<td class="fw-bold">{{ "%.2f%%"|format(c.interest_rate_annual*100) }}</td>{% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer small text-muted">
+    Credit Risk Premium = PD × EAD × coverage factor. Interest Rate = Target Return + Cost of Fund + Tenure Charge + Op. Cost + Credit Risk Premium (before NGO support).
+  </div>
+</div>
 {% endblock %}
